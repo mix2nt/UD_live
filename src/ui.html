@@ -33,7 +33,7 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        gap: 14px;
+        gap: 10px;
         padding: 16px;
         background: var(--bg);
       }
@@ -106,22 +106,20 @@
         font-size: 16px;
       }
 
-      .marker-label {
-        font-size: 13px;
-        color: var(--muted);
+      .marker-number {
+        display: none;
       }
 
-      .marker-number {
-        font-size: 18px;
-        font-weight: 700;
-        margin-top: 2px;
+      .title-inline {
+        flex: 1;
+        min-width: 0;
       }
 
       .tag-row {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
-        margin-top: 8px;
+        margin-top: 0;
       }
 
       .tag {
@@ -199,18 +197,7 @@
 
       <div class="prompt" id="promptText">Figma의 아무 곳을 한 번 클릭하면 숫자 마커가 생성됩니다.</div>
 
-      <div class="card" id="editorCard" hidden>
-        <div class="marker-box" id="markerBox">
-          <div class="marker-chip" id="markerChip">1</div>
-          <div>
-            <div class="marker-label">마커 번호</div>
-            <div class="marker-number" id="markerNumber">1</div>
-          </div>
-        </div>
-      </div>
-
       <div class="card" id="fieldCard" hidden>
-        <label for="titleInput">제목</label>
         <div class="tag-row" aria-label="태그 선택">
           <button class="tag" type="button" data-tag="Number">Number</button>
           <button class="tag" type="button" data-tag="Title">Title</button>
@@ -218,8 +205,13 @@
           <button class="tag" type="button" data-tag="Dash">Dash</button>
           <button class="tag" type="button" data-tag="Phrases">Phrases</button>
         </div>
-        <div style="margin-top: 12px;">
-          <input id="titleInput" type="text" placeholder="제목을 입력하세요" />
+      </div>
+
+      <div class="card" id="editorCard" hidden>
+        <div class="marker-box" id="markerBox">
+          <div class="marker-chip" id="markerChip">1</div>
+          <input id="titleInput" class="title-inline" type="text" placeholder="제목을 입력하세요" />
+          <div class="marker-number" id="markerNumber">1</div>
         </div>
       </div>
 
@@ -284,6 +276,7 @@
           markerNumber.textContent = String(message.markerNumber);
           markerChip.textContent = String(message.markerNumber);
           modeStatus.textContent = '활성';
+          titleInput.focus();
           helpText.textContent = '태그를 추가하고 제목을 입력한 뒤 저장 버튼을 눌러 메모 표를 만드세요.';
           if (message.title) {
             titleInput.value = message.title;
