@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nw Description assistant</title>
+    <style>
+      :root {
+        --bg: #f6f7fb;
+        --panel: #ffffff;
+        --muted: #6b7280;
+        --text: #111827;
+        --primary: #2563eb;
+        --primary-soft: #dfe9ff;
+        --line: #e5e7eb;
+        --danger: #ef4444;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Arial", "Noto Sans KR", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .panel {
+        width: 100%;
+        max-width: 360px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 16px;
+        background: var(--bg);
+      }
+
+      .title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2px;
+      }
+
+      .title-bar h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .status {
+        font-size: 12px;
+        color: var(--muted);
+        background: #eef2ff;
+        border-radius: 999px;
+        padding: 6px 10px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      }
+
+      .prompt {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        padding: 20px 12px;
+        font-size: 18px;
+        line-height: 1.5;
+        color: var(--text);
+        text-align: center;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+      }
+
+      .marker-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+      }
+
+      .marker-chip {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+      }
+
+      .marker-label {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .marker-number {
+        font-size: 18px;
+        font-weight: 700;
+        margin-top: 2px;
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .tag {
+        border: 1px solid var(--line);
+        background: #f9fafb;
+        color: var(--text);
+        border-radius: 999px;
+        padding: 7px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .tag:hover {
+        background: var(--primary-soft);
+        border-color: #b8ccff;
+      }
+
+      label {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: white;
+        outline: none;
+        padding: 10px 12px;
+        font-size: 14px;
+        color: var(--text);
+      }
+
+      input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+      }
+
+      .primary-btn {
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: white;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 12px 16px;
+        cursor: pointer;
+      }
+
+      .primary-btn:hover {
+        filter: brightness(1.03);
+      }
+
+      .save-btn {
+        margin-top: auto;
+      }
+
+      .help {
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <div class="title-bar">
+        <h2>설명 도우미</h2>
+        <div class="status" id="modeStatus">대기</div>
+      </div>
+
+      <div class="prompt" id="promptText">Figma의 아무 곳을 한 번 클릭하면 숫자 마커가 생성됩니다.</div>
+
+      <div class="card" id="editorCard" hidden>
+        <div class="marker-box" id="markerBox">
+          <div class="marker-chip" id="markerChip">1</div>
+          <div>
+            <div class="marker-label">마커 번호</div>
+            <div class="marker-number" id="markerNumber">1</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="fieldCard" hidden>
+        <label for="titleInput">제목</label>
+        <div class="tag-row" aria-label="태그 선택">
+          <button class="tag" type="button" data-tag="Number">Number</button>
+          <button class="tag" type="button" data-tag="Title">Title</button>
+          <button class="tag" type="button" data-tag="Dot">Dot</button>
+          <button class="tag" type="button" data-tag="Dash">Dash</button>
+          <button class="tag" type="button" data-tag="Phrases">Phrases</button>
+        </div>
+        <div style="margin-top: 12px;">
+          <input id="titleInput" type="text" placeholder="제목을 입력하세요" />
+        </div>
+      </div>
+
+      <div class="help" id="helpText">
+        요소를 선택하거나 캔버스를 클릭하면 마커가 추가됩니다. 마커가 추가되면 제목 입력과 태그 도구가 나타납니다.
+      </div>
+
+      <button class="primary-btn save-btn" type="button" id="saveButton" hidden>저장</button>
+    </div>
+
+    <script>
+      const tagButtons = document.querySelectorAll('.tag');
+      const titleInput = document.getElementById('titleInput');
+      const editorCard = document.getElementById('editorCard');
+      const fieldCard = document.getElementById('fieldCard');
+      const markerBox = document.getElementById('markerBox');
+      const markerNumber = document.getElementById('markerNumber');
+      const markerChip = document.getElementById('markerChip');
+      const modeStatus = document.getElementById('modeStatus');
+      const saveButton = document.getElementById('saveButton');
+      const helpText = document.getElementById('helpText');
+      const promptText = document.getElementById('promptText');
+
+      function insertTag(name) {
+        const selectionStart = titleInput.selectionStart ?? titleInput.value.length;
+        const selectionEnd = titleInput.selectionEnd ?? titleInput.value.length;
+        const prefix = titleInput.value.slice(0, selectionStart);
+        const suffix = titleInput.value.slice(selectionEnd);
+        const tokenMap = {
+          Number: ' {{NUMBER}} ',
+          Title: ' {{TITLE}} ',
+          Dot: ' • ',
+          Dash: ' — ',
+          Phrases: ' {{PHRASES}} '
+        };
+
+        titleInput.value = prefix + tokenMap[name] + suffix;
+        titleInput.focus();
+      }
+
+      tagButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const tag = button.dataset.tag;
+          insertTag(tag);
+        });
+      });
+
+      saveButton.addEventListener('click', () => {
+        const title = titleInput.value.trim();
+        parent.postMessage({ pluginMessage: { type: 'save-table', title, markerNumber: Number(markerNumber.textContent || '1') } }, '*');
+      });
+
+      window.addEventListener('message', (event) => {
+        const message = event.data.pluginMessage;
+        if (!message) return;
+
+        if (message.type === 'marker-ready') {
+          promptText.hidden = true;
+          editorCard.hidden = false;
+          fieldCard.hidden = false;
+          saveButton.hidden = false;
+          markerNumber.textContent = String(message.markerNumber);
+          markerChip.textContent = String(message.markerNumber);
+          modeStatus.textContent = '활성';
+          helpText.textContent = '태그를 추가하고 제목을 입력한 뒤 저장 버튼을 눌러 메모 표를 만드세요.';
+          if (message.title) {
+            titleInput.value = message.title;
+          }
+        }
+
+        if (message.type === 'table-created') {
+          modeStatus.textContent = '완료';
+          helpText.textContent = '메모 표가 캔버스에 배치되었습니다. 필요하면 위치를 이동해 보세요.';
+          titleInput.value = '';
+        }
+      });
+    </script>
+  </body>
+</html>
