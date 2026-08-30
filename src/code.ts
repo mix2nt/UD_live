@@ -154,8 +154,8 @@ async function initializePlugin(): Promise<void> {
 }
 
 function createMarkerFromSelection(): Promise<void> {
-  const x = figma.viewport.center.x;
-  const y = figma.viewport.center.y;
+  const x = figma.viewport.center.x + figma.viewport.center.x * 0;
+  const y = figma.viewport.center.y + figma.viewport.center.y * 0;
 
   return createMarker(markerSequence, x, y).then((marker) => {
     const number = Number(marker.name.match(/(\d+)$/)?.[0] ?? String(markerSequence));
