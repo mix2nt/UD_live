@@ -138,6 +138,39 @@
         border-color: #b8ccff;
       }
 
+      .field-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 12px;
+        width: 100%;
+      }
+
+      .field-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+      }
+
+      .field-badge {
+        width: 42px;
+        min-width: 42px;
+        height: 32px;
+        border-radius: 10px;
+        background: #eef2ff;
+        color: var(--primary);
+        font-size: 13px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .field-row input {
+        flex: 1;
+      }
+
       label {
         display: block;
         font-size: 12px;
@@ -199,7 +232,6 @@
 
       <div class="card" id="fieldCard" hidden>
         <div class="tag-row" aria-label="태그 선택">
-          <button class="tag" type="button" data-tag="Number">Number</button>
           <button class="tag" type="button" data-tag="Title">Title</button>
           <button class="tag" type="button" data-tag="Dot">Dot</button>
           <button class="tag" type="button" data-tag="Dash">Dash</button>
@@ -213,6 +245,7 @@
           <input id="titleInput" class="title-inline" type="text" placeholder="제목을 입력하세요" />
           <div class="marker-number" id="markerNumber">1</div>
         </div>
+        <div class="field-list" id="fieldList"></div>
       </div>
 
       <div class="help" id="helpText">
@@ -227,6 +260,7 @@
       const titleInput = document.getElementById('titleInput');
       const editorCard = document.getElementById('editorCard');
       const fieldCard = document.getElementById('fieldCard');
+      const fieldList = document.getElementById('fieldList');
       const markerBox = document.getElementById('markerBox');
       const markerNumber = document.getElementById('markerNumber');
       const markerChip = document.getElementById('markerChip');
@@ -235,27 +269,50 @@
       const helpText = document.getElementById('helpText');
       const promptText = document.getElementById('promptText');
 
-      function insertTag(name) {
-        const selectionStart = titleInput.selectionStart ?? titleInput.value.length;
-        const selectionEnd = titleInput.selectionEnd ?? titleInput.value.length;
-        const prefix = titleInput.value.slice(0, selectionStart);
-        const suffix = titleInput.value.slice(selectionEnd);
-        const tokenMap = {
-          Number: ' {{NUMBER}} ',
-          Title: ' {{TITLE}} ',
-          Dot: ' • ',
-          Dash: ' — ',
-          Phrases: ' {{PHRASES}} '
-        };
+      let titleSequence = 1;
 
-        titleInput.value = prefix + tokenMap[name] + suffix;
-        titleInput.focus();
+      function appendField(type) {
+        const row = document.createElement('div');
+        row.className = 'field-row';
+
+        const badge = document.createElement('div');
+        badge.className = 'field-badge';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = '입력하세요';
+
+        if (type === 'Title') {
+          const markerLabel = `1-${titleSequence}`;
+          badge.textContent = markerLabel;
+          titleSequence += 1;
+          input.placeholder = '제목을 입력하세요';
+        } else if (type === 'Dot') {
+          badge.textContent = '·';
+          input.value = '·';
+          input.placeholder = '도트 문구를 입력하세요';
+        } else if (type === 'Dash') {
+          badge.textContent = '-';
+          input.value = '-';
+          input.placeholder = '대시 문구를 입력하세요';
+        } else if (type === 'Phrases') {
+          badge.textContent = '문장';
+          input.placeholder = '자주 사용하는 문장을 입력하세요';
+        }
+
+        row.appendChild(badge);
+        row.appendChild(input);
+        fieldList.appendChild(row);
+        fieldList.scrollTop = fieldList.scrollHeight;
+        input.focus();
       }
 
       tagButtons.forEach((button) => {
         button.addEventListener('click', () => {
           const tag = button.dataset.tag;
-          insertTag(tag);
+          if (tag === 'Title' || tag === 'Dot' || tag === 'Dash' || tag === 'Phrases') {
+            appendField(tag);
+          }
         });
       });
 

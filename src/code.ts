@@ -1,18 +1,19 @@
 type SaveMessage = {
   type: 'save-table';
   title: string;
-  markerNumber: number;
+  markerNumber: number | string;
 };
 
 type UiMessage =
   | SaveMessage
-  | { type: 'create-marker' }
-  | { type: 'marker-ready'; markerNumber: number; title: string }
+  | { type: 'create-marker'; markerLabel?: string }
+  | { type: 'marker-ready'; markerNumber: number | string; title: string }
   | { type: 'table-created'; nodeId: string };
 
 /// <reference types="@figma/plugin-typings" />
 
 let markerSequence = 1;
+let subMarkerSequence = 1;
 let activeMarker: FrameNode | null = null;
 
 async function loadFonts(): Promise<void> {
@@ -21,12 +22,13 @@ async function loadFonts(): Promise<void> {
   await figma.loadFontAsync({ family: 'Inter', style: 'Semi Bold' });
 }
 
-async function createMarker(number: number, x: number, y: number): Promise<FrameNode> {
+async function createMarker(number: number | string, x: number, y: number): Promise<FrameNode> {
   await loadFonts();
 
   const marker = figma.createFrame();
+  const markerText = String(number);
 
-  marker.name = `마커 ${number}`;
+  marker.name = `마커 ${markerText}`;
   marker.resize(48, 48);
   marker.x = x - 24;
   marker.y = y - 24;
@@ -38,11 +40,11 @@ async function createMarker(number: number, x: number, y: number): Promise<Frame
 
   const text = figma.createText();
   text.name = '번호';
-  text.characters = String(number);
-  text.fontSize = 18;
+  text.characters = markerText;
+  text.fontSize = markerText.includes('-') ? 14 : 18;
   text.fontName = { family: 'Inter', style: 'Bold' };
   text.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
-  text.x = 14;
+  text.x = markerText.includes('-') ? 9 : 14;
   text.y = 11;
   text.visible = true;
 
@@ -64,7 +66,7 @@ function memoTableTitle(title: string): string {
   return cleaned.length > 0 ? cleaned : '제목 없음';
 }
 
-async function buildMemoTable(title: string, markerNumber: number): Promise<FrameNode> {
+async function buildMemoTable(title: string, markerNumber: number | string): Promise<FrameNode> {
   await loadFonts();
   const table = figma.createFrame();
   const safeTitle = memoTableTitle(title);
@@ -149,13 +151,19 @@ async function initializePlugin(): Promise<void> {
   figma.ui.postMessage({ type: 'idle' });
 }
 
-function createMarkerFromSelection(): Promise<void> {
+function createMarkerFromSelection(markerLabel?: string): Promise<void> {
   const clickX = figma.viewport.center.x;
   const clickY = figma.viewport.center.y;
+  const resolvedLabel = markerLabel ?? String(markerSequence);
 
-  return createMarker(markerSequence, clickX, clickY).then((marker) => {
-    const number = Number(marker.name.match(/(\d+)$/)?.[0] ?? String(markerSequence));
+  return createMarker(resolvedLabel, clickX, clickY).then((marker) => {
+    const number = marker.name.includes('-') ? marker.name.split('마커 ').pop() ?? resolvedLabel : Number(marker.name.match(/(\d+)$/)?.[0] ?? String(markerSequence));
     figma.ui.postMessage({ type: 'marker-ready', markerNumber: number, title: '' });
+    if (markerLabel) {
+      subMarkerSequence += 1;
+    } else {
+      markerSequence += 1;
+    }
   });
 }
 
@@ -193,6 +201,9 @@ figma.ui.onmessage = async (msg) => {
   }
 
   if (msg.type === 'create-marker') {
-    await createMarkerFromSelection();
+    const markerLabel = typeof msg.markerLabel === 'string' && msg.markerLabel.trim().length > 0
+      ? msg.markerLabel
+      : undefined;
+    await createMarkerFromSelection(markerLabel);
   }
 };
