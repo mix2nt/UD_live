@@ -219,6 +219,76 @@
         color: var(--muted);
         line-height: 1.5;
       }
+
+      .phrase-screen {
+        display: none;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .phrase-screen.visible {
+        display: flex;
+      }
+
+      .phrase-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 220px;
+        overflow-y: auto;
+      }
+
+      .phrase-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        width: 100%;
+        background: #f9fafb;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .phrase-item span {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .phrase-item button {
+        border: none;
+        background: transparent;
+        color: var(--primary);
+        font-weight: 700;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      .back-btn {
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fff;
+        color: var(--text);
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .phrase-save-btn {
+        margin-top: auto;
+      }
     </style>
   </head>
   <body>
@@ -237,6 +307,21 @@
           <button class="tag" type="button" data-tag="Dash">Dash</button>
           <button class="tag" type="button" data-tag="Phrases">Phrases</button>
         </div>
+      </div>
+
+      <div class="card phrase-screen" id="phraseScreen">
+        <div class="title-bar">
+          <h2>자주 쓰는 문장</h2>
+          <button class="back-btn" type="button" id="phraseBackButton" aria-label="돌아가기">&#8249;</button>
+        </div>
+
+        <div class="field-row">
+          <input id="phraseInput" type="text" placeholder="문장을 입력해 등록하세요" />
+        </div>
+
+        <div class="phrase-list" id="phraseList"></div>
+
+        <button class="primary-btn phrase-save-btn" type="button" id="phraseAddButton">문장 등록</button>
       </div>
 
       <div class="card" id="editorCard" hidden>
@@ -268,8 +353,68 @@
       const saveButton = document.getElementById('saveButton');
       const helpText = document.getElementById('helpText');
       const promptText = document.getElementById('promptText');
+      const phraseScreen = document.getElementById('phraseScreen');
+      const phraseAddButton = document.getElementById('phraseAddButton');
+      const phraseBackButton = document.getElementById('phraseBackButton');
+      const phraseInput = document.getElementById('phraseInput');
+      const phraseList = document.getElementById('phraseList');
 
       let titleSequence = 1;
+      const registeredPhrases = [
+        '다음 단계로 진행합니다.',
+        '필수 확인 사항입니다.',
+        '추가 논의가 필요합니다.'
+      ];
+
+      function showMainView() {
+        phraseScreen.classList.remove('visible');
+        fieldCard.hidden = false;
+        editorCard.hidden = false;
+        saveButton.hidden = false;
+      }
+
+      function showPhraseView() {
+        fieldCard.hidden = true;
+        editorCard.hidden = true;
+        saveButton.hidden = true;
+        phraseScreen.classList.add('visible');
+        modeStatus.textContent = '문장 관리';
+        helpText.textContent = '자주 쓰는 문장을 등록하고 선택해 메인 입력에 넣을 수 있습니다.';
+        phraseInput.focus();
+      }
+
+      function renderPhraseList() {
+        phraseList.innerHTML = '';
+
+        registeredPhrases.forEach((phrase) => {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'phrase-item';
+
+          const text = document.createElement('span');
+          text.textContent = phrase;
+
+          const action = document.createElement('button');
+          action.type = 'button';
+          action.textContent = '삽입';
+          action.addEventListener('click', (event) => {
+            event.stopPropagation();
+            titleInput.value = `${titleInput.value}${titleInput.value ? ' ' : ''}${phrase}`;
+            titleInput.focus();
+            showMainView();
+          });
+
+          item.appendChild(text);
+          item.appendChild(action);
+          item.addEventListener('click', () => {
+            titleInput.value = `${titleInput.value}${titleInput.value ? ' ' : ''}${phrase}`;
+            titleInput.focus();
+            showMainView();
+          });
+
+          phraseList.appendChild(item);
+        });
+      }
 
       function appendField(type) {
         const row = document.createElement('div');
@@ -298,6 +443,8 @@
         } else if (type === 'Phrases') {
           badge.textContent = '문장';
           input.placeholder = '자주 사용하는 문장을 입력하세요';
+          showPhraseView();
+          return;
         }
 
         row.appendChild(badge);
@@ -310,10 +457,35 @@
       tagButtons.forEach((button) => {
         button.addEventListener('click', () => {
           const tag = button.dataset.tag;
-          if (tag === 'Title' || tag === 'Dot' || tag === 'Dash' || tag === 'Phrases') {
+          if (tag === 'Phrases') {
+            showPhraseView();
+            return;
+          }
+
+          if (tag === 'Title' || tag === 'Dot' || tag === 'Dash') {
             appendField(tag);
           }
         });
+      });
+
+      phraseAddButton.addEventListener('click', () => {
+        const newPhrase = phraseInput.value.trim();
+        if (!newPhrase) {
+          phraseInput.focus();
+          return;
+        }
+
+        registeredPhrases.push(newPhrase);
+        renderPhraseList();
+        phraseInput.value = '';
+        phraseInput.focus();
+      });
+
+      phraseBackButton.addEventListener('click', () => {
+        showMainView();
+        if (titleInput) {
+          titleInput.focus();
+        }
       });
 
       saveButton.addEventListener('click', () => {
@@ -346,6 +518,8 @@
           titleInput.value = '';
         }
       });
+
+      renderPhraseList();
     </script>
   </body>
 </html>
