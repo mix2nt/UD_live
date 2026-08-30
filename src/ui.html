@@ -82,6 +82,10 @@
         border-radius: 16px;
       }
 
+      .prompt[hidden] {
+        display: none !important;
+      }
+
       .marker-box {
         display: flex;
         align-items: center;
@@ -220,7 +224,7 @@
       </div>
 
       <div class="help" id="helpText">
-        요소를 선택하거나 캔버스를 클릭하면 마커가 추가됩니다. 마커가 추가되면 제목 입력과 태그 도구가 나타납니다.
+        마커가 추가되면 제목 입력과 태그 도구가 나타납니다.
       </div>
 
       <button class="primary-btn save-btn" type="button" id="saveButton" hidden>저장</button>

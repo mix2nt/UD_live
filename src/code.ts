@@ -24,10 +24,6 @@ async function loadFonts(): Promise<void> {
 async function createMarker(number: number, x: number, y: number): Promise<FrameNode> {
   await loadFonts();
 
-  if (activeMarker && activeMarker.parent && activeMarker.parent.type === 'PAGE') {
-    activeMarker.remove();
-  }
-
   const marker = figma.createFrame();
 
   marker.name = `마커 ${number}`;
@@ -154,14 +150,17 @@ async function initializePlugin(): Promise<void> {
 }
 
 function createMarkerFromSelection(): Promise<void> {
-  const x = figma.viewport.center.x + figma.viewport.center.x * 0;
-  const y = figma.viewport.center.y + figma.viewport.center.y * 0;
+  const clickX = figma.viewport.center.x;
+  const clickY = figma.viewport.center.y;
 
-  return createMarker(markerSequence, x, y).then((marker) => {
+  return createMarker(markerSequence, clickX, clickY).then((marker) => {
     const number = Number(marker.name.match(/(\d+)$/)?.[0] ?? String(markerSequence));
     figma.ui.postMessage({ type: 'marker-ready', markerNumber: number, title: '' });
-    markerSequence += 1;
   });
+}
+
+function shouldCreateMarkerOnCanvasClick(): boolean {
+  return figma.currentPage.selection.length === 0;
 }
 
 figma.showUI(__html__, {
@@ -170,6 +169,10 @@ figma.showUI(__html__, {
 });
 
 figma.on('selectionchange', async () => {
+  if (!shouldCreateMarkerOnCanvasClick()) {
+    return;
+  }
+
   await createMarkerFromSelection();
 });
 
