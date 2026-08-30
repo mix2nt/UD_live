@@ -86,6 +86,18 @@
         display: none !important;
       }
 
+      .marker-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .marker-entry {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
       .marker-box {
         display: flex;
         align-items: center;
@@ -325,12 +337,7 @@
       </div>
 
       <div class="card" id="editorCard" hidden>
-        <div class="marker-box" id="markerBox">
-          <div class="marker-chip" id="markerChip">1</div>
-          <input id="titleInput" class="title-inline" type="text" placeholder="제목을 입력하세요" />
-          <div class="marker-number" id="markerNumber">1</div>
-        </div>
-        <div class="field-list" id="fieldList"></div>
+        <div class="marker-stack" id="markerStack"></div>
       </div>
 
       <div class="help" id="helpText">
@@ -342,13 +349,10 @@
 
     <script>
       const tagButtons = document.querySelectorAll('.tag');
-      const titleInput = document.getElementById('titleInput');
       const editorCard = document.getElementById('editorCard');
       const fieldCard = document.getElementById('fieldCard');
       const fieldList = document.getElementById('fieldList');
-      const markerBox = document.getElementById('markerBox');
-      const markerNumber = document.getElementById('markerNumber');
-      const markerChip = document.getElementById('markerChip');
+      const markerStack = document.getElementById('markerStack');
       const modeStatus = document.getElementById('modeStatus');
       const saveButton = document.getElementById('saveButton');
       const helpText = document.getElementById('helpText');
@@ -359,12 +363,60 @@
       const phraseInput = document.getElementById('phraseInput');
       const phraseList = document.getElementById('phraseList');
 
+      let titleInput = null;
+      let markerNumber = null;
+      let markerChip = null;
+      let activeEntry = null;
+
       let titleSequence = 1;
       const registeredPhrases = [
         '다음 단계로 진행합니다.',
         '필수 확인 사항입니다.',
         '추가 논의가 필요합니다.'
       ];
+
+      function activateEntry(entry) {
+        activeEntry = entry;
+        titleInput = entry.querySelector('.title-inline');
+        markerNumber = entry.querySelector('.marker-number');
+        markerChip = entry.querySelector('.marker-chip');
+      }
+
+      function createMarkerEntry(number) {
+        const entry = document.createElement('div');
+        entry.className = 'marker-entry';
+
+        const markerBox = document.createElement('div');
+        markerBox.className = 'marker-box';
+
+        const chip = document.createElement('div');
+        chip.className = 'marker-chip';
+        chip.textContent = String(number);
+
+        const input = document.createElement('input');
+        input.className = 'title-inline';
+        input.type = 'text';
+        input.placeholder = '제목을 입력하세요';
+
+        const numberEl = document.createElement('div');
+        numberEl.className = 'marker-number';
+        numberEl.textContent = String(number);
+
+        markerBox.appendChild(chip);
+        markerBox.appendChild(input);
+        markerBox.appendChild(numberEl);
+
+        const entryFields = document.createElement('div');
+        entryFields.className = 'field-list';
+
+        entry.appendChild(markerBox);
+        entry.appendChild(entryFields);
+        markerStack.appendChild(entry);
+        activateEntry(entry);
+
+        input.focus();
+        return entry;
+      }
 
       function showMainView() {
         phraseScreen.classList.remove('visible');
@@ -417,6 +469,8 @@
       }
 
       function appendField(type) {
+        const currentEntry = activeEntry || null;
+        const targetFieldList = currentEntry ? currentEntry.querySelector('.field-list') : fieldList;
         const row = document.createElement('div');
         row.className = 'field-row';
 
@@ -449,8 +503,8 @@
 
         row.appendChild(badge);
         row.appendChild(input);
-        fieldList.appendChild(row);
-        fieldList.scrollTop = fieldList.scrollHeight;
+        targetFieldList.appendChild(row);
+        targetFieldList.scrollTop = targetFieldList.scrollHeight;
         input.focus();
       }
 
@@ -489,8 +543,9 @@
       });
 
       saveButton.addEventListener('click', () => {
-        const title = titleInput.value.trim();
-        parent.postMessage({ pluginMessage: { type: 'save-table', title, markerNumber: Number(markerNumber.textContent || '1') } }, '*');
+        const title = titleInput ? titleInput.value.trim() : '';
+        const currentMarkerNumber = markerNumber ? Number(markerNumber.textContent || '1') : 1;
+        parent.postMessage({ pluginMessage: { type: 'save-table', title, markerNumber: currentMarkerNumber } }, '*');
       });
 
       window.addEventListener('message', (event) => {
@@ -502,9 +557,14 @@
           editorCard.hidden = false;
           fieldCard.hidden = false;
           saveButton.hidden = false;
-          markerNumber.textContent = String(message.markerNumber);
-          markerChip.textContent = String(message.markerNumber);
+
+          const entry = createMarkerEntry(message.markerNumber);
+          activateEntry(entry);
+          markerNumber = entry.querySelector('.marker-number');
+          markerChip = entry.querySelector('.marker-chip');
+
           modeStatus.textContent = '활성';
+          titleInput = entry.querySelector('.title-inline');
           titleInput.focus();
           helpText.textContent = '태그를 추가하고 제목을 입력한 뒤 저장 버튼을 눌러 메모 표를 만드세요.';
           if (message.title) {
@@ -515,7 +575,9 @@
         if (message.type === 'table-created') {
           modeStatus.textContent = '완료';
           helpText.textContent = '메모 표가 캔버스에 배치되었습니다. 필요하면 위치를 이동해 보세요.';
-          titleInput.value = '';
+          if (titleInput) {
+            titleInput.value = '';
+          }
         }
       });
 
