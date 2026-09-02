@@ -86,6 +86,34 @@
         display: none !important;
       }
 
+      .toolbar {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .drag-handle,
+      .mode-btn {
+        flex: 1;
+        min-height: 40px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 700;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mode-btn.active {
+        background: var(--primary-soft);
+        border-color: #b8ccff;
+        color: var(--primary);
+      }
+
       .marker-stack {
         display: flex;
         flex-direction: column;
@@ -101,30 +129,94 @@
       .marker-box {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 10px 12px;
+        gap: 10px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        transition: all 0.15s ease;
+      }
+
+      .marker-entry.is-active .marker-box {
+        background: #f3f8ff;
+        border-radius: 10px;
+        padding: 4px 6px;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.08);
       }
 
       .marker-chip {
-        width: 36px;
-        height: 36px;
+        width: 28.8px;
+        height: 28.8px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-        color: white;
+        border: 1px solid transparent;
+        background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+        color: #1e3a8a;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
-        font-size: 16px;
+        font-size: 12.8px;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .marker-entry.is-active .marker-chip {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #1d4ed8;
+        border-color: rgba(37, 99, 235, 0.2);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+      }
+
+      .marker-entry.is-inactive .marker-chip {
+        background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+        color: #6b7280;
+        border-color: #d1d5db;
+        opacity: 0.9;
+      }
+
+      .marker-entry.is-inactive .marker-box {
+        background: transparent;
       }
 
       .marker-number {
         display: none;
       }
 
+      .marker-delete-btn {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        background: #fff1f2;
+        color: #dc2626;
+        font-size: 18px;
+        line-height: 1;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
       .title-inline {
         flex: 1;
         min-width: 0;
+        border: 1px solid #dfe5ee;
+        background: white;
+      }
+
+      .marker-entry.is-inactive .title-inline {
+        background: #f3f4f6;
+        border-color: #e5e7eb;
+        color: #6b7280;
+      }
+
+      .marker-entry.is-active .title-inline {
+        border-color: rgba(59, 130, 246, 0.6);
+        background: #f8fbff;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.08);
       }
 
       .tag-row {
@@ -161,26 +253,97 @@
       .field-row {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         width: 100%;
       }
 
-      .field-badge {
-        width: 42px;
-        min-width: 42px;
-        height: 32px;
-        border-radius: 10px;
-        background: #eef2ff;
-        color: var(--primary);
-        font-size: 13px;
+      .field-chip {
+        width: 28.8px;
+        height: 28.8px;
+        min-width: 28.8px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #1d4ed8;
+        font-size: 12px;
         font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .field-chip.dot-chip,
+      .field-chip.dash-chip,
+      .field-chip.phrase-chip {
+        width: 28.8px;
+        height: 28.8px;
+        font-size: 14px;
+      }
+
+      .field-delete-btn {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        background: #fff1f2;
+        color: #dc2626;
+        font-size: 18px;
+        line-height: 1;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
       }
 
       .field-row input {
         flex: 1;
+      }
+
+      .field-row.is-active {
+        background: #f3f8ff;
+        border-radius: 10px;
+        padding: 4px 6px;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.08);
+      }
+
+      .field-row.is-active .field-chip {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #1d4ed8;
+        border-color: rgba(37, 99, 235, 0.2);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+      }
+
+      .field-row.is-active input {
+        border-color: rgba(59, 130, 246, 0.6);
+        background: #f8fbff;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.08);
+      }
+
+      .field-row input:focus,
+      .field-row input:focus-visible {
+        border-color: rgba(59, 130, 246, 0.6);
+        background: #f8fbff;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.08);
+        outline: none;
+      }
+
+      .field-row.is-inactive {
+        background: transparent;
+        opacity: 0.85;
+      }
+
+      .field-row.is-inactive .field-chip {
+        background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+        color: #6b7280;
+      }
+
+      .field-row.is-inactive input {
+        background: #f3f4f6;
+        border-color: #e5e7eb;
+        color: #6b7280;
       }
 
       label {
@@ -301,6 +464,7 @@
       .phrase-save-btn {
         margin-top: auto;
       }
+
     </style>
   </head>
   <body>
@@ -310,7 +474,18 @@
         <div class="status" id="modeStatus">대기</div>
       </div>
 
+      <div class="toolbar card">
+        <button id="createMarkerButton" class="mode-btn" type="button">마커 추가</button>
+        <button id="createTableButton" class="mode-btn" type="button">표 만들기</button>
+        <div id="markerDragHandle" class="drag-handle" draggable="true" style="display:none;">마커 추가</div>
+        <div id="tableDragHandle" class="drag-handle" draggable="true" style="display:none;">표 만들기</div>
+      </div>
+
       <div class="prompt" id="promptText">Figma의 아무 곳을 한 번 클릭하면 숫자 마커가 생성됩니다.</div>
+
+      <div class="card" id="editorCard" hidden>
+        <div class="marker-stack" id="markerStack"></div>
+      </div>
 
       <div class="card" id="fieldCard" hidden>
         <div class="tag-row" aria-label="태그 선택">
@@ -336,22 +511,17 @@
         <button class="primary-btn phrase-save-btn" type="button" id="phraseAddButton">문장 등록</button>
       </div>
 
-      <div class="card" id="editorCard" hidden>
-        <div class="marker-stack" id="markerStack"></div>
-      </div>
-
       <div class="help" id="helpText">
         마커가 추가되면 제목 입력과 태그 도구가 나타납니다.
       </div>
 
-      <button class="primary-btn save-btn" type="button" id="saveButton" hidden>저장</button>
+      <button class="primary-btn save-btn" type="button" id="saveButton" hidden>디스크립션 생성</button>
     </div>
 
     <script>
       const tagButtons = document.querySelectorAll('.tag');
       const editorCard = document.getElementById('editorCard');
       const fieldCard = document.getElementById('fieldCard');
-      const fieldList = document.getElementById('fieldList');
       const markerStack = document.getElementById('markerStack');
       const modeStatus = document.getElementById('modeStatus');
       const saveButton = document.getElementById('saveButton');
@@ -362,11 +532,19 @@
       const phraseBackButton = document.getElementById('phraseBackButton');
       const phraseInput = document.getElementById('phraseInput');
       const phraseList = document.getElementById('phraseList');
+      const createMarkerButton = document.getElementById('createMarkerButton');
+      const createTableButton = document.getElementById('createTableButton');
+      const markerDragHandle = document.getElementById('markerDragHandle');
+      const tableDragHandle = document.getElementById('tableDragHandle');
 
       let titleInput = null;
       let markerNumber = null;
       let markerChip = null;
       let activeEntry = null;
+      let currentNodeId = null;
+      let addModeActive = false;
+      let lastFocusedTextField = null;
+      const titleCounterByMarker = new Map();
 
       let titleSequence = 1;
       const registeredPhrases = [
@@ -375,28 +553,149 @@
         '추가 논의가 필요합니다.'
       ];
 
+      function setAddMode(nextState) {
+        addModeActive = nextState;
+        parent.postMessage({ pluginMessage: { type: 'toggle-add-mode', active: addModeActive } }, '*');
+      }
+
+      function collectCurrentTags() {
+        if (!activeEntry) {
+          return [];
+        }
+
+        const rows = activeEntry.querySelectorAll('.field-row');
+        const tags = [];
+        rows.forEach((row) => {
+          const badge = row.querySelector('.field-badge');
+          const input = row.querySelector('input');
+          if (!badge || !input) {
+            return;
+          }
+          const label = badge.textContent.trim();
+          const value = input.value.trim();
+          if (value) {
+            tags.push({ label, value });
+          }
+        });
+        return tags;
+      }
+
+      function syncMarkerEntryNumbers(records) {
+        const nextMap = new Map((records || []).map((record) => [record.nodeId, record]));
+
+        [...markerStack.children].forEach((entry) => {
+          const record = nextMap.get(entry.dataset.nodeId);
+          if (!record) {
+            return;
+          }
+
+          const chip = entry.querySelector('.marker-chip');
+          const numberEl = entry.querySelector('.marker-number');
+          if (chip) {
+            chip.textContent = String(record.number);
+          }
+          if (numberEl) {
+            numberEl.textContent = String(record.number);
+          }
+
+          if (currentNodeId === entry.dataset.nodeId) {
+            if (markerNumber) {
+              markerNumber.textContent = String(record.number);
+            }
+            if (markerChip) {
+              markerChip.textContent = String(record.number);
+            }
+          }
+        });
+      }
+
+      function renderActiveList(records) {
+        const nextIds = new Set((records || []).map((record) => record.nodeId));
+
+        [...markerStack.children].forEach((entry) => {
+          if (!nextIds.has(entry.dataset.nodeId)) {
+            entry.remove();
+          }
+        });
+
+        if (currentNodeId && !nextIds.has(currentNodeId)) {
+          currentNodeId = null;
+          activeEntry = null;
+          titleInput = null;
+          markerNumber = null;
+          markerChip = null;
+        }
+
+        syncMarkerEntryNumbers(records);
+      }
+
+      function syncSingleFocusState(activeMarkerEntry = activeEntry, activeFieldRow = null) {
+        [...markerStack.children].forEach((node) => {
+          const isActive = !!activeMarkerEntry && node === activeMarkerEntry && !activeFieldRow;
+          node.classList.toggle('is-active', isActive);
+          node.classList.toggle('is-inactive', !isActive);
+        });
+
+        [...document.querySelectorAll('.field-row')].forEach((row) => {
+          const isActive = row === activeFieldRow;
+          row.classList.toggle('is-active', isActive);
+          row.classList.toggle('is-inactive', !isActive);
+          row.dataset.focused = String(isActive);
+        });
+      }
+
       function activateEntry(entry) {
         activeEntry = entry;
         titleInput = entry.querySelector('.title-inline');
         markerNumber = entry.querySelector('.marker-number');
         markerChip = entry.querySelector('.marker-chip');
+        currentNodeId = entry.dataset.nodeId || null;
+        syncSingleFocusState(entry, null);
       }
 
-      function createMarkerEntry(number) {
+      function createMarkerEntry(number, nodeId) {
         const entry = document.createElement('div');
-        entry.className = 'marker-entry';
+        entry.className = 'marker-entry is-inactive';
+        entry.dataset.nodeId = nodeId;
 
         const markerBox = document.createElement('div');
         markerBox.className = 'marker-box';
 
-        const chip = document.createElement('div');
+        const chip = document.createElement('button');
+        chip.type = 'button';
         chip.className = 'marker-chip';
         chip.textContent = String(number);
+        chip.addEventListener('click', () => {
+          const targetEntry = [...markerStack.children].find((entryNode) => entryNode.dataset.nodeId === nodeId);
+          if (targetEntry) {
+            activateEntry(targetEntry);
+            if (titleInput) {
+              titleInput.focus();
+            }
+          }
+        });
 
         const input = document.createElement('input');
         input.className = 'title-inline';
         input.type = 'text';
         input.placeholder = '제목을 입력하세요';
+        input.addEventListener('focusin', () => {
+          lastFocusedTextField = input;
+          const targetEntry = [...markerStack.children].find((entryNode) => entryNode.dataset.nodeId === nodeId);
+          if (targetEntry) {
+            activateEntry(targetEntry);
+          }
+        });
+
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'marker-delete-btn';
+        deleteButton.setAttribute('aria-label', '마커 삭제');
+        deleteButton.textContent = '×';
+        deleteButton.addEventListener('click', (event) => {
+          event.stopPropagation();
+          parent.postMessage({ pluginMessage: { type: 'delete-active-item', nodeId } }, '*');
+        });
 
         const numberEl = document.createElement('div');
         numberEl.className = 'marker-number';
@@ -404,6 +703,7 @@
 
         markerBox.appendChild(chip);
         markerBox.appendChild(input);
+        markerBox.appendChild(deleteButton);
         markerBox.appendChild(numberEl);
 
         const entryFields = document.createElement('div');
@@ -413,7 +713,6 @@
         entry.appendChild(entryFields);
         markerStack.appendChild(entry);
         activateEntry(entry);
-
         input.focus();
         return entry;
       }
@@ -423,9 +722,15 @@
         fieldCard.hidden = false;
         editorCard.hidden = false;
         saveButton.hidden = false;
+
+        const restoreTarget = lastFocusedTextField || titleInput;
+        if (restoreTarget) {
+          restoreTarget.focus();
+        }
       }
 
       function showPhraseView() {
+        lastFocusedTextField = getActiveTextField() || titleInput || lastFocusedTextField;
         fieldCard.hidden = true;
         editorCard.hidden = true;
         saveButton.hidden = true;
@@ -433,6 +738,44 @@
         modeStatus.textContent = '문장 관리';
         helpText.textContent = '자주 쓰는 문장을 등록하고 선택해 메인 입력에 넣을 수 있습니다.';
         phraseInput.focus();
+      }
+
+      function getActiveMarkerNumber() {
+        const rawNumber = markerNumber?.textContent || activeEntry?.querySelector('.marker-number')?.textContent || '1';
+        const parsed = Number(rawNumber);
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+      }
+
+      function getNextTitleValue() {
+        const safeNodeId = currentNodeId || 'default';
+        const nextCount = (titleCounterByMarker.get(safeNodeId) || 0) + 1;
+        titleCounterByMarker.set(safeNodeId, nextCount);
+        return `${getActiveMarkerNumber()}-${nextCount}`;
+      }
+
+      function getActiveTextField() {
+        if (lastFocusedTextField && lastFocusedTextField.tagName === 'INPUT') {
+          return lastFocusedTextField;
+        }
+
+        const focused = document.activeElement;
+        if (focused && focused.tagName === 'INPUT' && focused.closest('.field-row, .title-inline')) {
+          lastFocusedTextField = focused;
+          return focused;
+        }
+        return titleInput || null;
+      }
+
+      function insertPhraseIntoActiveField(phrase) {
+        const targetInput = lastFocusedTextField || getActiveTextField();
+        if (!targetInput) {
+          return;
+        }
+
+        const nextValue = `${targetInput.value}${targetInput.value ? ' ' : ''}${phrase}`;
+        targetInput.value = nextValue;
+        lastFocusedTextField = targetInput;
+        targetInput.focus();
       }
 
       function renderPhraseList() {
@@ -451,16 +794,14 @@
           action.textContent = '삽입';
           action.addEventListener('click', (event) => {
             event.stopPropagation();
-            titleInput.value = `${titleInput.value}${titleInput.value ? ' ' : ''}${phrase}`;
-            titleInput.focus();
+            insertPhraseIntoActiveField(phrase);
             showMainView();
           });
 
           item.appendChild(text);
           item.appendChild(action);
           item.addEventListener('click', () => {
-            titleInput.value = `${titleInput.value}${titleInput.value ? ' ' : ''}${phrase}`;
-            titleInput.focus();
+            insertPhraseIntoActiveField(phrase);
             showMainView();
           });
 
@@ -470,43 +811,116 @@
 
       function appendField(type) {
         const currentEntry = activeEntry || null;
-        const targetFieldList = currentEntry ? currentEntry.querySelector('.field-list') : fieldList;
-        const row = document.createElement('div');
-        row.className = 'field-row';
+        const targetFieldList = currentEntry ? currentEntry.querySelector('.field-list') : null;
+        if (!targetFieldList) {
+          return;
+        }
 
-        const badge = document.createElement('div');
-        badge.className = 'field-badge';
+        const row = document.createElement('div');
+        row.className = 'field-row is-inactive';
+        row.dataset.focused = 'false';
+
+        const chip = document.createElement('div');
+        chip.className = 'field-chip';
 
         const input = document.createElement('input');
         input.type = 'text';
         input.placeholder = '입력하세요';
 
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'field-delete-btn';
+        deleteButton.setAttribute('aria-label', '필드 삭제');
+        deleteButton.textContent = '×';
+        deleteButton.addEventListener('click', () => {
+          row.remove();
+        });
+
         if (type === 'Title') {
-          const markerLabel = `1-${titleSequence}`;
-          badge.textContent = markerLabel;
-          titleSequence += 1;
+          const titleValue = getNextTitleValue();
+          chip.textContent = titleValue;
+          chip.classList.add('title-chip');
+          input.value = titleValue;
           input.placeholder = '제목을 입력하세요';
         } else if (type === 'Dot') {
-          badge.textContent = '·';
+          chip.textContent = '·';
+          chip.classList.add('dot-chip');
           input.value = '·';
           input.placeholder = '도트 문구를 입력하세요';
         } else if (type === 'Dash') {
-          badge.textContent = '-';
+          chip.textContent = '-';
+          chip.classList.add('dash-chip');
           input.value = '-';
           input.placeholder = '대시 문구를 입력하세요';
         } else if (type === 'Phrases') {
-          badge.textContent = '문장';
+          chip.textContent = '문';
+          chip.classList.add('phrase-chip');
           input.placeholder = '자주 사용하는 문장을 입력하세요';
           showPhraseView();
           return;
         }
 
-        row.appendChild(badge);
+        const setFieldActiveState = (nextActive) => {
+          if (nextActive) {
+            syncSingleFocusState(activeEntry, row);
+            return;
+          }
+
+          const nextFocusedRow = [...document.querySelectorAll('.field-row')].find((candidate) => candidate.dataset.focused === 'true' && candidate !== row);
+          if (nextFocusedRow) {
+            return;
+          }
+
+          syncSingleFocusState(activeEntry, null);
+        };
+
+        input.addEventListener('focusin', () => {
+          lastFocusedTextField = input;
+          setFieldActiveState(true);
+        });
+        input.addEventListener('focusout', (event) => {
+          const nextTarget = event.relatedTarget;
+          if (nextTarget && row.contains(nextTarget)) {
+            return;
+          }
+          setFieldActiveState(false);
+        });
+        row.addEventListener('click', () => {
+          if (document.activeElement !== input) {
+            input.focus();
+          }
+          setFieldActiveState(true);
+        });
+        chip.addEventListener('click', () => {
+          input.focus();
+          setFieldActiveState(true);
+        });
+
+        row.appendChild(chip);
         row.appendChild(input);
+        row.appendChild(deleteButton);
         targetFieldList.appendChild(row);
         targetFieldList.scrollTop = targetFieldList.scrollHeight;
         input.focus();
       }
+
+      createMarkerButton.addEventListener('click', () => {
+        parent.postMessage({ pluginMessage: { type: 'create-marker' } }, '*');
+      });
+
+      createTableButton.addEventListener('click', () => {
+        parent.postMessage({ pluginMessage: { type: 'build-table' } }, '*');
+      });
+
+      markerDragHandle.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('application/x-ud-marker', 'marker');
+        event.dataTransfer.effectAllowed = 'copy';
+      });
+
+      tableDragHandle.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('application/x-ud-table', 'table');
+        event.dataTransfer.effectAllowed = 'copy';
+      });
 
       tagButtons.forEach((button) => {
         button.addEventListener('click', () => {
@@ -537,20 +951,23 @@
 
       phraseBackButton.addEventListener('click', () => {
         showMainView();
-        if (titleInput) {
-          titleInput.focus();
+        const targetInput = getActiveTextField();
+        if (targetInput) {
+          targetInput.focus();
         }
       });
 
       saveButton.addEventListener('click', () => {
-        const title = titleInput ? titleInput.value.trim() : '';
-        const currentMarkerNumber = markerNumber ? Number(markerNumber.textContent || '1') : 1;
-        parent.postMessage({ pluginMessage: { type: 'save-table', title, markerNumber: currentMarkerNumber } }, '*');
+        parent.postMessage({ pluginMessage: { type: 'build-table' } }, '*');
       });
 
       window.addEventListener('message', (event) => {
         const message = event.data.pluginMessage;
         if (!message) return;
+
+        if (message.type === 'active-list-updated') {
+          renderActiveList(message.records || []);
+        }
 
         if (message.type === 'marker-ready') {
           promptText.hidden = true;
@@ -558,10 +975,11 @@
           fieldCard.hidden = false;
           saveButton.hidden = false;
 
-          const entry = createMarkerEntry(message.markerNumber);
+          const entry = createMarkerEntry(message.markerNumber, message.nodeId);
           activateEntry(entry);
           markerNumber = entry.querySelector('.marker-number');
           markerChip = entry.querySelector('.marker-chip');
+          currentNodeId = message.nodeId;
 
           modeStatus.textContent = '활성';
           titleInput = entry.querySelector('.title-inline');
@@ -582,6 +1000,7 @@
       });
 
       renderPhraseList();
+      renderActiveList([]);
     </script>
   </body>
 </html>
