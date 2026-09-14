@@ -51,14 +51,6 @@
         font-weight: 700;
       }
 
-      .status {
-        font-size: 12px;
-        color: var(--muted);
-        background: #eef2ff;
-        border-radius: 999px;
-        padding: 6px 10px;
-      }
-
       .card {
         background: var(--panel);
         border: 1px solid var(--line);
@@ -471,20 +463,11 @@
     <div class="panel">
       <div class="title-bar">
         <h2>설명 도우미</h2>
-        <div class="status" id="modeStatus">대기</div>
       </div>
 
-      <div class="toolbar card">
-        <button id="createMarkerButton" class="mode-btn" type="button">마커 추가</button>
-        <button id="createTableButton" class="mode-btn" type="button">표 만들기</button>
-        <div id="markerDragHandle" class="drag-handle" draggable="true" style="display:none;">마커 추가</div>
-        <div id="tableDragHandle" class="drag-handle" draggable="true" style="display:none;">표 만들기</div>
-      </div>
-
-      <div class="prompt" id="promptText">Figma의 아무 곳을 한 번 클릭하면 숫자 마커가 생성됩니다.</div>
-
-      <div class="card" id="editorCard" hidden>
-        <div class="marker-stack" id="markerStack"></div>
+      <div class="toolbar">
+        <button id="createMarkerButton" class="mode-btn" type="button">Add description</button>
+        <div id="markerDragHandle" class="drag-handle" draggable="true" style="display:none;">Add description</div>
       </div>
 
       <div class="card" id="fieldCard" hidden>
@@ -494,6 +477,10 @@
           <button class="tag" type="button" data-tag="Dash">Dash</button>
           <button class="tag" type="button" data-tag="Phrases">Phrases</button>
         </div>
+      </div>
+
+      <div class="card" id="editorCard" hidden>
+        <div class="marker-stack" id="markerStack"></div>
       </div>
 
       <div class="card phrase-screen" id="phraseScreen">
@@ -523,19 +510,26 @@
       const editorCard = document.getElementById('editorCard');
       const fieldCard = document.getElementById('fieldCard');
       const markerStack = document.getElementById('markerStack');
-      const modeStatus = document.getElementById('modeStatus');
       const saveButton = document.getElementById('saveButton');
       const helpText = document.getElementById('helpText');
-      const promptText = document.getElementById('promptText');
       const phraseScreen = document.getElementById('phraseScreen');
       const phraseAddButton = document.getElementById('phraseAddButton');
       const phraseBackButton = document.getElementById('phraseBackButton');
       const phraseInput = document.getElementById('phraseInput');
       const phraseList = document.getElementById('phraseList');
       const createMarkerButton = document.getElementById('createMarkerButton');
-      const createTableButton = document.getElementById('createTableButton');
       const markerDragHandle = document.getElementById('markerDragHandle');
       const tableDragHandle = document.getElementById('tableDragHandle');
+
+      function updateTableButtonState() {
+        const hasMarker = markerStack.children.length > 0;
+        fieldCard.hidden = !hasMarker;
+        if (saveButton) {
+          saveButton.hidden = !hasMarker;
+        }
+      }
+
+      updateTableButtonState();
 
       let titleInput = null;
       let markerNumber = null;
@@ -626,6 +620,7 @@
           markerChip = null;
         }
 
+        updateTableButtonState();
         syncMarkerEntryNumbers(records);
       }
 
@@ -721,7 +716,7 @@
         phraseScreen.classList.remove('visible');
         fieldCard.hidden = false;
         editorCard.hidden = false;
-        saveButton.hidden = false;
+        updateTableButtonState();
 
         const restoreTarget = lastFocusedTextField || titleInput;
         if (restoreTarget) {
@@ -733,9 +728,10 @@
         lastFocusedTextField = getActiveTextField() || titleInput || lastFocusedTextField;
         fieldCard.hidden = true;
         editorCard.hidden = true;
-        saveButton.hidden = true;
+        if (saveButton) {
+          saveButton.hidden = true;
+        }
         phraseScreen.classList.add('visible');
-        modeStatus.textContent = '문장 관리';
         helpText.textContent = '자주 쓰는 문장을 등록하고 선택해 메인 입력에 넣을 수 있습니다.';
         phraseInput.focus();
       }
@@ -840,18 +836,16 @@
           const titleValue = getNextTitleValue();
           chip.textContent = titleValue;
           chip.classList.add('title-chip');
-          input.value = titleValue;
-          input.placeholder = '제목을 입력하세요';
+          input.placeholder = '내용을 입력하세요.';
+          parent.postMessage({ pluginMessage: { type: 'create-title-marker', markerLabel: titleValue } }, '*');
         } else if (type === 'Dot') {
           chip.textContent = '·';
           chip.classList.add('dot-chip');
-          input.value = '·';
-          input.placeholder = '도트 문구를 입력하세요';
+          input.placeholder = '내용을 입력하세요.';
         } else if (type === 'Dash') {
           chip.textContent = '-';
           chip.classList.add('dash-chip');
-          input.value = '-';
-          input.placeholder = '대시 문구를 입력하세요';
+          input.placeholder = '내용을 입력하세요.';
         } else if (type === 'Phrases') {
           chip.textContent = '문';
           chip.classList.add('phrase-chip');
@@ -908,17 +902,8 @@
         parent.postMessage({ pluginMessage: { type: 'create-marker' } }, '*');
       });
 
-      createTableButton.addEventListener('click', () => {
-        parent.postMessage({ pluginMessage: { type: 'build-table' } }, '*');
-      });
-
       markerDragHandle.addEventListener('dragstart', (event) => {
         event.dataTransfer.setData('application/x-ud-marker', 'marker');
-        event.dataTransfer.effectAllowed = 'copy';
-      });
-
-      tableDragHandle.addEventListener('dragstart', (event) => {
-        event.dataTransfer.setData('application/x-ud-table', 'table');
         event.dataTransfer.effectAllowed = 'copy';
       });
 
@@ -958,6 +943,9 @@
       });
 
       saveButton.addEventListener('click', () => {
+        if (markerStack.children.length === 0) {
+          return;
+        }
         parent.postMessage({ pluginMessage: { type: 'build-table' } }, '*');
       });
 
@@ -970,18 +958,16 @@
         }
 
         if (message.type === 'marker-ready') {
-          promptText.hidden = true;
           editorCard.hidden = false;
-          fieldCard.hidden = false;
-          saveButton.hidden = false;
+          updateTableButtonState();
 
           const entry = createMarkerEntry(message.markerNumber, message.nodeId);
+          updateTableButtonState();
           activateEntry(entry);
           markerNumber = entry.querySelector('.marker-number');
           markerChip = entry.querySelector('.marker-chip');
           currentNodeId = message.nodeId;
 
-          modeStatus.textContent = '활성';
           titleInput = entry.querySelector('.title-inline');
           titleInput.focus();
           helpText.textContent = '태그를 추가하고 제목을 입력한 뒤 저장 버튼을 눌러 메모 표를 만드세요.';
@@ -991,7 +977,6 @@
         }
 
         if (message.type === 'table-created') {
-          modeStatus.textContent = '완료';
           helpText.textContent = '메모 표가 캔버스에 배치되었습니다. 필요하면 위치를 이동해 보세요.';
           if (titleInput) {
             titleInput.value = '';
@@ -1000,7 +985,11 @@
       });
 
       renderPhraseList();
+      updateTableButtonState();
       renderActiveList([]);
+      if (saveButton) {
+        saveButton.hidden = true;
+      }
     </script>
   </body>
 </html>

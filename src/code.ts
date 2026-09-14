@@ -19,6 +19,7 @@ type ActiveMarkerRecord = {
 type UiMessage =
   | SaveMessage
   | { type: 'create-marker'; markerLabel?: string }
+  | { type: 'create-title-marker'; markerLabel: string }
   | { type: 'toggle-add-mode'; active: boolean }
   | { type: 'save-active-item'; nodeId: string; title: string; tags: ActiveTag[] }
   | { type: 'delete-active-item'; nodeId: string }
@@ -362,6 +363,15 @@ async function createMarkerAtPosition(x: number, y: number, label?: string): Pro
   }
 }
 
+async function createTitleMarkerFromSelection(markerLabel: string): Promise<void> {
+  const targetNode = figma.currentPage.selection[0];
+  const bounds = targetNode && 'absoluteBoundingBox' in targetNode ? targetNode.absoluteBoundingBox : null;
+  const centerX = bounds ? bounds.x + bounds.width / 2 : figma.viewport.center.x;
+  const centerY = bounds ? bounds.y + bounds.height / 2 : figma.viewport.center.y;
+
+  await createMarker(markerLabel, centerX, centerY);
+}
+
 function createMarkerFromSelection(markerLabel?: string): Promise<void> {
   const targetNode = figma.currentPage.selection[0];
   const centerX = targetNode && 'absoluteBoundingBox' in targetNode && targetNode.absoluteBoundingBox
@@ -496,5 +506,10 @@ figma.ui.onmessage = async (msg) => {
       ? msg.markerLabel
       : undefined;
     await createMarkerFromSelection(markerLabel);
+    return;
+  }
+
+  if (msg.type === 'create-title-marker') {
+    await createTitleMarkerFromSelection(msg.markerLabel);
   }
 };
