@@ -20,6 +20,13 @@
         box-sizing: border-box;
       }
 
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
       body {
         margin: 0;
         font-family: "Arial", "Noto Sans KR", sans-serif;
@@ -29,8 +36,8 @@
 
       .panel {
         width: 100%;
-        max-width: 360px;
-        min-height: 100vh;
+        height: 100%;
+        max-width: none;
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -51,12 +58,24 @@
         font-weight: 700;
       }
 
+      .main-title-bar {
+        justify-content: flex-start;
+        gap: 12px;
+      }
+
       .card {
         background: var(--panel);
         border: 1px solid var(--line);
         border-radius: 14px;
         padding: 14px;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      }
+
+      #editorCard {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
       }
 
       .prompt {
@@ -78,26 +97,71 @@
         display: none !important;
       }
 
+      #idlePrompt {
+        flex: 1 1 auto;
+        background: none;
+        border: none;
+        border-radius: 0;
+      }
+
+      .title-bar[hidden],
+      .help-row[hidden],
+      .toolbar[hidden] {
+        display: none !important;
+      }
+
       .toolbar {
         display: flex;
-        gap: 8px;
+        gap: 12px;
         align-items: center;
       }
 
-      .drag-handle,
-      .mode-btn {
+      .toolbar .mode-btn,
+      .toolbar .tag {
         flex: 1;
-        min-height: 40px;
-        border-radius: 10px;
+        margin-left: 0;
+        margin-right: 0;
+      }
+
+      .description-tools {
+        display: contents;
+      }
+
+      .description-tools[hidden] {
+        display: none;
+      }
+
+      .panel.is-empty .toolbar {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .panel.is-empty .toolbar .mode-btn {
+        flex: 0 1 220px;
+      }
+
+      .drag-handle,
+      .mode-btn,
+      .tag {
+        flex: 1;
+        border-radius: 999px;
         border: 1px solid var(--line);
-        background: #fff;
+        background: #f9fafb;
         color: var(--text);
-        font-size: 13px;
-        font-weight: 700;
+        padding: 10px 12px;
+        font-size: 14px;
+        font-weight: 500;
         cursor: grab;
         display: flex;
         align-items: center;
         justify-content: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .mode-btn[hidden] {
+        display: none !important;
       }
 
       .mode-btn.active {
@@ -106,29 +170,65 @@
         color: var(--primary);
       }
 
+      .mode-btn:disabled,
+      .tag:disabled {
+        background: #eef0f4;
+        color: #aab0bb;
+        border-color: #e5e7eb;
+        cursor: not-allowed;
+        opacity: 1;
+      }
+
+      .tip-chip {
+        flex: 0 0 auto;
+        padding: 10px 8px;
+        background: #fff7e6;
+        border-color: #ffd889;
+        color: #92600a;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .tip-chip:hover {
+        background: #ffedbf;
+        border-color: #f5c451;
+      }
+
       .marker-stack {
         display: flex;
         flex-direction: column;
-        gap: 12px;
       }
 
       .marker-entry {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 16px;
+      }
+
+      .marker-entry + .marker-entry {
+        margin-top: 20px;
       }
 
       .marker-box {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 6px;
         padding: 0;
         border: none;
         background: transparent;
         transition: all 0.15s ease;
       }
 
-      .marker-entry.is-active .marker-box {
+      .marker-content,
+      .field-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .marker-entry.is-active .marker-content {
         background: #f3f8ff;
         border-radius: 10px;
         padding: 4px 6px;
@@ -178,18 +278,85 @@
         width: 28px;
         height: 28px;
         min-width: 28px;
-        border: 1px solid #fecaca;
-        border-radius: 8px;
-        background: #fff1f2;
-        color: #dc2626;
-        font-size: 18px;
-        line-height: 1;
-        font-weight: 700;
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        color: var(--danger);
         cursor: pointer;
+        padding: 0;
+        flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+
+      .marker-delete-btn:hover {
+        color: #dc2626;
+      }
+
+      .marker-delete-btn svg {
+        width: 18px;
+        height: 18px;
+        pointer-events: none;
+      }
+
+      .entry-handle,
+      .row-handle {
+        display: flex;
+        position: relative;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
         flex-shrink: 0;
+        color: var(--muted);
+        cursor: grab;
+        font-size: 14px;
+        line-height: 1;
+        user-select: none;
+      }
+
+      .marker-entry,
+      .field-row {
+        transition: transform 160ms ease, opacity 160ms ease;
+      }
+
+      .marker-stack.is-dragging .marker-entry:not(.dragging),
+      .field-list.is-dragging .field-row:not(.dragging) {
+        opacity: 0.4;
+      }
+
+      .marker-entry.dragging .marker-box,
+      .field-row.dragging {
+        cursor: grabbing;
+      }
+
+      .marker-entry.dragging {
+        position: relative;
+        z-index: 5;
+        opacity: 1;
+        transform: scale(1.02);
+        outline: 2px solid var(--primary);
+        outline-offset: 4px;
+        border-radius: 12px;
+        background: #f5f9ff;
+        box-shadow: 0 12px 28px rgba(37, 99, 235, 0.3);
+      }
+
+      .field-row.dragging {
+        position: relative;
+        z-index: 5;
+        opacity: 1;
+        transform: scale(1.02);
+        outline: 2px solid var(--primary);
+        outline-offset: 3px;
+        border-radius: 10px;
+        background: #f5f9ff;
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.26);
+      }
+
+      .marker-entry.dragging .entry-handle,
+      .field-row.dragging .row-handle {
+        color: var(--primary);
       }
 
       .title-inline {
@@ -197,6 +364,14 @@
         min-width: 0;
         border: 1px solid #dfe5ee;
         background: white;
+        font-weight: 700;
+        resize: none;
+        height: auto;
+        min-height: 48px;
+        max-height: 60px;
+        overflow-y: auto;
+        line-height: 1.4;
+        padding: 6px 12px;
       }
 
       .marker-entry.is-inactive .title-inline {
@@ -219,16 +394,11 @@
       }
 
       .tag {
-        border: 1px solid var(--line);
-        background: #f9fafb;
-        color: var(--text);
-        border-radius: 999px;
-        padding: 7px 10px;
-        font-size: 12px;
         cursor: pointer;
         transition: all 0.15s ease;
       }
 
+      .mode-btn:hover,
       .tag:hover {
         background: var(--primary-soft);
         border-color: #b8ccff;
@@ -238,14 +408,14 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
-        margin-top: 12px;
+        margin-top: 0;
         width: 100%;
       }
 
       .field-row {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 6px;
         width: 100%;
       }
 
@@ -264,7 +434,6 @@
         flex-shrink: 0;
       }
 
-      .field-chip.dot-chip,
       .field-chip.dash-chip,
       .field-chip.phrase-chip {
         width: 28.8px;
@@ -272,29 +441,42 @@
         font-size: 14px;
       }
 
+      .field-chip.field-chip-hidden {
+        display: none;
+      }
+
       .field-delete-btn {
-        width: 28px;
-        height: 28px;
-        min-width: 28px;
-        border: 1px solid #fecaca;
-        border-radius: 8px;
-        background: #fff1f2;
-        color: #dc2626;
-        font-size: 18px;
-        line-height: 1;
-        font-weight: 700;
+        width: 26px;
+        height: 26px;
+        min-width: 26px;
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        color: var(--danger);
         cursor: pointer;
+        padding: 0;
+        flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0;
       }
 
-      .field-row input {
+      .field-delete-btn:hover {
+        color: #dc2626;
+      }
+
+      .field-delete-btn svg {
+        width: 18px;
+        height: 18px;
+        pointer-events: none;
+      }
+
+      .field-row input,
+      .field-row textarea {
         flex: 1;
       }
 
-      .field-row.is-active {
+      .field-row.is-active .field-content {
         background: #f3f8ff;
         border-radius: 10px;
         padding: 4px 6px;
@@ -308,14 +490,19 @@
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
       }
 
-      .field-row.is-active input {
+      .field-row.is-active input,
+      .field-row.is-active textarea {
         border-color: rgba(59, 130, 246, 0.6);
         background: #f8fbff;
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.08);
       }
 
       .field-row input:focus,
-      .field-row input:focus-visible {
+      .field-row input:focus-visible,
+      .field-row textarea:focus,
+      .field-row textarea:focus-visible,
+      .phrase-input-row input:focus,
+      .phrase-input-row input:focus-visible {
         border-color: rgba(59, 130, 246, 0.6);
         background: #f8fbff;
         box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.08);
@@ -332,10 +519,20 @@
         color: #6b7280;
       }
 
-      .field-row.is-inactive input {
+      .field-row.is-inactive input,
+      .field-row.is-inactive textarea {
         background: #f3f4f6;
         border-color: #e5e7eb;
         color: #6b7280;
+      }
+
+      .field-row.title-field,
+      .field-row.dash-indented {
+        padding-left: 20px;
+      }
+
+      .field-row.title-field textarea {
+        font-weight: 700;
       }
 
       label {
@@ -345,7 +542,8 @@
         margin-bottom: 8px;
       }
 
-      input {
+      input,
+      textarea {
         width: 100%;
         border: 1px solid var(--line);
         border-radius: 10px;
@@ -356,9 +554,27 @@
         color: var(--text);
       }
 
+      textarea {
+        resize: none;
+        height: auto;
+        min-height: 48px;
+        max-height: 60px;
+        overflow-y: auto;
+        line-height: 1.4;
+        padding: 6px 12px;
+      }
+
       input:focus {
         border-color: var(--primary);
         box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+      }
+
+      .phrase-input-row input:focus,
+      .phrase-input-row input:focus-visible {
+        border-color: rgba(59, 130, 246, 0.6);
+        background: #f8fbff;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.08);
+        outline: none;
       }
 
       .primary-btn {
@@ -371,10 +587,25 @@
         font-size: 15px;
         padding: 12px 16px;
         cursor: pointer;
+        transition: background 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
       }
 
       .primary-btn:hover {
-        filter: brightness(1.03);
+        background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+        color: white;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22);
+      }
+
+      .primary-btn:disabled {
+        cursor: not-allowed;
+        background: #d1d5db;
+        color: #6b7280;
+        opacity: 1;
+        box-shadow: none;
+      }
+
+      .primary-btn:disabled:hover {
+        filter: none;
       }
 
       .save-btn {
@@ -382,9 +613,174 @@
       }
 
       .help {
-        font-size: 11px;
+        font-size: 15px;
         color: var(--muted);
         line-height: 1.5;
+      }
+
+      .help-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .help-row .help {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .guide-chip {
+        flex-shrink: 0;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #f9fafb;
+        color: var(--primary);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .guide-chip:hover {
+        background: var(--primary-soft);
+        border-color: #b8ccff;
+      }
+
+      .guide-tooltip {
+        position: fixed;
+        z-index: 1000;
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+        padding: 10px 12px;
+        width: min(460px, calc(100vw - 16px));
+        font-size: 11px;
+        line-height: 1.5;
+        color: var(--text);
+      }
+
+      .guide-tooltip-title {
+        font-weight: 700;
+        font-size: 13px;
+        margin-bottom: 8px;
+        color: var(--text);
+      }
+
+      .guide-tooltip-list {
+        margin: 0;
+        padding-left: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .guide-tooltip-list li {
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .guide-tooltip-list li strong {
+        color: var(--text);
+      }
+
+      .coach-mark-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .coach-mark-dismiss {
+        flex-shrink: 0;
+        border: none;
+        border-radius: 999px;
+        background: var(--primary);
+        color: white;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .coach-mark-never-show {
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 0;
+        white-space: nowrap;
+      }
+
+      .coach-mark-never-show:hover {
+        color: var(--text);
+      }
+
+      .coach-mark-never-show-icon {
+        color: var(--danger);
+        font-weight: 700;
+      }
+
+      .coach-mark-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+      }
+
+      .coach-mark-spotlight {
+        position: fixed;
+        border-radius: 16px;
+        box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55);
+        pointer-events: none;
+        z-index: 999;
+      }
+
+      .coach-mark-tooltip {
+        z-index: 1000;
+      }
+
+      .coach-mark-tooltip::before {
+        content: '';
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        background: white;
+        border-left: 1px solid var(--line);
+        border-top: 1px solid var(--line);
+        left: 28px;
+      }
+
+      .coach-mark-tooltip.arrow-up::before {
+        top: -7px;
+        transform: rotate(45deg);
+      }
+
+      .coach-mark-tooltip.arrow-down::before {
+        bottom: -7px;
+        border-left: none;
+        border-top: none;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        transform: rotate(45deg);
+      }
+
+      .tip-tooltip-examples {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        color: var(--muted);
+      }
+
+      .tip-tooltip-examples div {
+        white-space: nowrap;
       }
 
       .phrase-screen {
@@ -397,10 +793,17 @@
         display: flex;
       }
 
+      .phrase-screen input,
+      .phrase-screen textarea,
+      .phrase-item span {
+        font-size: 14px;
+      }
+
       .phrase-list {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
+        margin-top: 8px;
         max-height: 220px;
         overflow-y: auto;
       }
@@ -408,23 +811,23 @@
       .phrase-item {
         display: flex;
         align-items: center;
-        justify-content: space-between;
         gap: 8px;
         width: 100%;
-        background: #f9fafb;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 10px 12px;
         text-align: left;
-        cursor: pointer;
+        cursor: default;
       }
 
       .phrase-item span {
         flex: 1;
         min-width: 0;
+        background: #f9fafb;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        cursor: pointer;
       }
 
       .phrase-item button {
@@ -434,6 +837,15 @@
         font-weight: 700;
         cursor: pointer;
         padding: 0;
+      }
+
+      .phrase-item button,
+      .marker-delete-btn,
+      .field-delete-btn {
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: normal;
       }
 
       .back-btn {
@@ -453,29 +865,52 @@
         justify-content: center;
       }
 
+      .back-btn[hidden] {
+        display: none !important;
+      }
+
       .phrase-save-btn {
-        margin-top: auto;
+        width: auto;
+        height: 40px;
+        margin: 0;
+        padding: 0 16px;
+        flex: 0 0 auto;
+      }
+
+      .phrase-input-row {
+        align-items: stretch;
+      }
+
+      .phrase-input-row input {
+        height: 48px;
       }
 
     </style>
   </head>
   <body>
     <div class="panel">
-      <div class="title-bar">
-        <h2>설명 도우미</h2>
+      <div class="prompt" id="idlePrompt" hidden>Select an element, then click the Add description button.</div>
+
+      <div class="title-bar main-title-bar" id="mainTitleBar">
+        <button class="back-btn" type="button" id="phraseBackButton" aria-label="Back" hidden>&#8249;</button>
+        <h2 id="mainHeading">Description Assistant</h2>
       </div>
 
-      <div class="toolbar">
-        <button id="createMarkerButton" class="mode-btn" type="button">Add description</button>
+      <div class="help-row" id="helpRow">
+        <div class="help" id="helpText">
+          Press the button to create a UX description
+        </div>
+        <button type="button" class="guide-chip" id="guideChipButton">Guide</button>
+      </div>
+
+      <div class="toolbar" id="mainToolbar">
+        <button id="createMarkerButton" class="mode-btn" type="button" disabled>Add description</button>
         <div id="markerDragHandle" class="drag-handle" draggable="true" style="display:none;">Add description</div>
-      </div>
-
-      <div class="card" id="fieldCard" hidden>
-        <div class="tag-row" aria-label="태그 선택">
-          <button class="tag" type="button" data-tag="Title">Title</button>
-          <button class="tag" type="button" data-tag="Dot">Dot</button>
-          <button class="tag" type="button" data-tag="Dash">Dash</button>
-          <button class="tag" type="button" data-tag="Phrases">Phrases</button>
+        <div class="description-tools" id="fieldCard" hidden>
+          <button class="tag" type="button" data-tag="Title" id="subMarkerButton" disabled>+ Sub-item</button>
+          <button class="tag" type="button" data-tag="Dash">+ Detail</button>
+          <button class="tag" type="button" data-tag="Phrases">+ Phrase</button>
+          <button class="tag tip-chip" type="button" data-tag="Tip" id="tipChipButton">Tip</button>
         </div>
       </div>
 
@@ -484,34 +919,36 @@
       </div>
 
       <div class="card phrase-screen" id="phraseScreen">
-        <div class="title-bar">
-          <h2>자주 쓰는 문장</h2>
-          <button class="back-btn" type="button" id="phraseBackButton" aria-label="돌아가기">&#8249;</button>
-        </div>
-
-        <div class="field-row">
-          <input id="phraseInput" type="text" placeholder="문장을 입력해 등록하세요" />
+        <div class="field-row phrase-input-row">
+          <input id="phraseInput" type="text" placeholder="Type a phrase to register" />
+          <button class="primary-btn phrase-save-btn" type="button" id="phraseAddButton" hidden>Add</button>
         </div>
 
         <div class="phrase-list" id="phraseList"></div>
-
-        <button class="primary-btn phrase-save-btn" type="button" id="phraseAddButton">문장 등록</button>
       </div>
 
-      <div class="help" id="helpText">
-        마커가 추가되면 제목 입력과 태그 도구가 나타납니다.
-      </div>
-
-      <button class="primary-btn save-btn" type="button" id="saveButton" hidden>디스크립션 생성</button>
+      <button class="primary-btn save-btn" type="button" id="saveButton" hidden>Create Description</button>
     </div>
 
     <script>
       const tagButtons = document.querySelectorAll('.tag');
+      const TRASH_ICON_HTML = '<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 5H13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M6.2 5V3.6C6.2 3.16 6.56 2.8 7 2.8H9C9.44 2.8 9.8 3.16 9.8 3.6V5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.6 5L5.1 12.5C5.13 12.95 5.5 13.3 5.95 13.3H10.05C10.5 13.3 10.87 12.95 10.9 12.5L11.4 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.8 7.2V11.1" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><path d="M9.2 7.2V11.1" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>';
+      const panel = document.querySelector('.panel');
+      let currentTableId = null;
+      let hasCreatableSelection = false;
+      const idlePrompt = document.getElementById('idlePrompt');
+      const mainTitleBar = document.getElementById('mainTitleBar');
+      const helpRow = document.getElementById('helpRow');
+      const mainHeading = document.getElementById('mainHeading');
       const editorCard = document.getElementById('editorCard');
+      const mainToolbar = document.getElementById('mainToolbar');
       const fieldCard = document.getElementById('fieldCard');
+      const subMarkerButton = document.getElementById('subMarkerButton');
       const markerStack = document.getElementById('markerStack');
       const saveButton = document.getElementById('saveButton');
       const helpText = document.getElementById('helpText');
+      const guideChipButton = document.getElementById('guideChipButton');
+      const tipChipButton = document.getElementById('tipChipButton');
       const phraseScreen = document.getElementById('phraseScreen');
       const phraseAddButton = document.getElementById('phraseAddButton');
       const phraseBackButton = document.getElementById('phraseBackButton');
@@ -521,11 +958,43 @@
       const markerDragHandle = document.getElementById('markerDragHandle');
       const tableDragHandle = document.getElementById('tableDragHandle');
 
+      function hasDescriptionInput() {
+        return [...markerStack.querySelectorAll('input, textarea')]
+          .some((input) => input.value.trim().length >= 3);
+      }
+
+      const TEXTAREA_MAX_HEIGHT = 60;
+
+      function autoResizeTextarea(el) {
+        el.style.height = 'auto';
+        el.style.height = `${Math.min(el.scrollHeight, TEXTAREA_MAX_HEIGHT)}px`;
+      }
+
+      function updatePhraseButtonState() {
+        phraseAddButton.disabled = phraseInput.value.trim().length < 3;
+      }
+
       function updateTableButtonState() {
         const hasMarker = markerStack.children.length > 0;
+        idlePrompt.hidden = hasMarker;
+        mainTitleBar.hidden = !hasMarker;
+        helpRow.hidden = !hasMarker;
+        createMarkerButton.textContent = hasMarker ? '+ Title' : 'Add description';
+        createMarkerButton.classList.toggle('primary-btn', !hasMarker);
+        createMarkerButton.disabled = !hasCreatableSelection;
+        subMarkerButton.disabled = !hasCreatableSelection;
         fieldCard.hidden = !hasMarker;
+        editorCard.hidden = !hasMarker;
+        panel.classList.toggle('is-empty', !hasMarker);
+        helpText.hidden = false;
         if (saveButton) {
           saveButton.hidden = !hasMarker;
+          saveButton.disabled = !hasDescriptionInput();
+          saveButton.textContent = currentTableId ? 'Save Changes' : 'Create Description';
+        }
+
+        if (hasMarker) {
+          showToolbarCoachMark();
         }
       }
 
@@ -542,9 +1011,9 @@
 
       let titleSequence = 1;
       const registeredPhrases = [
-        '다음 단계로 진행합니다.',
-        '필수 확인 사항입니다.',
-        '추가 논의가 필요합니다.'
+        'On button click, land on the next page',
+        'Button enables once at least 1 character is entered',
+        'Automatically lands after 3 seconds'
       ];
 
       function setAddMode(nextState) {
@@ -572,6 +1041,56 @@
           }
         });
         return tags;
+      }
+
+      function collectDescriptionRows() {
+        const rows = [];
+        [...markerStack.children].forEach((entry) => {
+          const marker = entry.querySelector('.marker-chip')?.textContent?.trim() || '';
+          const markerInput = entry.querySelector('.title-inline');
+          rows.push({
+            item: marker,
+            description: markerInput?.value || '',
+            fontStyle: 'Bold'
+          });
+
+          entry.querySelectorAll('.field-row').forEach((fieldRow) => {
+            const chip = fieldRow.querySelector('.field-chip');
+            const input = fieldRow.querySelector('input, textarea');
+            if (!chip || !input) {
+              return;
+            }
+            rows.push({
+              item: chip.textContent?.trim() || '',
+              description: input.value || '',
+              fontStyle: fieldRow.classList.contains('title-field') ? 'Bold' : 'Regular'
+            });
+          });
+        });
+        return rows;
+      }
+
+      function collectEntries() {
+        return [...markerStack.children].map((entry) => {
+          const marker = entry.querySelector('.marker-chip')?.textContent?.trim() || '';
+          const markerInput = entry.querySelector('.title-inline');
+          const fields = [...entry.querySelectorAll('.field-row')].map((fieldRow) => {
+            const chip = fieldRow.querySelector('.field-chip');
+            const input = fieldRow.querySelector('input, textarea');
+            const kind = chip?.classList.contains('title-chip') ? 'Title' : 'Dash';
+            return {
+              kind,
+              label: chip?.textContent?.trim() || '',
+              value: input?.value || ''
+            };
+          });
+
+          return {
+            number: Number(marker) || 0,
+            title: markerInput?.value || '',
+            fields
+          };
+        });
       }
 
       function syncMarkerEntryNumbers(records) {
@@ -639,6 +1158,410 @@
         });
       }
 
+      let activeGuideTooltip = null;
+
+      function closeGuideTooltip() {
+        if (activeGuideTooltip) {
+          activeGuideTooltip.remove();
+          activeGuideTooltip = null;
+        }
+        document.removeEventListener('mousedown', handleOutsideGuideTooltipClick, true);
+      }
+
+      function handleOutsideGuideTooltipClick(event) {
+        if (activeGuideTooltip && !activeGuideTooltip.contains(event.target) && event.target !== guideChipButton) {
+          closeGuideTooltip();
+        }
+      }
+
+      function openGuideTooltip() {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'guide-tooltip';
+
+        const title = document.createElement('div');
+        title.className = 'guide-tooltip-title';
+        title.textContent = 'How to use Description Assistant';
+        tooltip.appendChild(title);
+
+        const steps = [
+          { label: 'Title', desc: 'Start a new numbered item' },
+          { label: 'Sub-item', desc: 'Add a sub marker (1-1, 1-2...)' },
+          { label: 'Detail', desc: 'Add a detail/description line' },
+          { label: 'Phrase', desc: 'Insert a saved phrase' },
+          'Enter the screen/feature name in the title field.',
+          "'Create Description' builds the UX description table.",
+          'Recorded content can be edited again anytime.',
+          'Drag an item\'s handle (⠿) to reorder it.'
+        ];
+
+        const list = document.createElement('ul');
+        list.className = 'guide-tooltip-list';
+        steps.forEach((step) => {
+          const li = document.createElement('li');
+          if (typeof step === 'string') {
+            li.textContent = step;
+          } else {
+            const label = document.createElement('strong');
+            label.textContent = step.label;
+            li.appendChild(label);
+            li.appendChild(document.createTextNode(` : ${step.desc}`));
+          }
+          list.appendChild(li);
+        });
+        tooltip.appendChild(list);
+
+        document.body.appendChild(tooltip);
+
+        const rect = guideChipButton.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        let left = rect.right - tooltipRect.width;
+        left = Math.max(8, Math.min(left, window.innerWidth - tooltipRect.width - 8));
+        let top = rect.bottom + 6;
+        if (top + tooltipRect.height > window.innerHeight - 8) {
+          top = rect.top - tooltipRect.height - 6;
+        }
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+
+        activeGuideTooltip = tooltip;
+        setTimeout(() => {
+          document.addEventListener('mousedown', handleOutsideGuideTooltipClick, true);
+        }, 0);
+      }
+
+      guideChipButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (activeGuideTooltip) {
+          closeGuideTooltip();
+          return;
+        }
+        openGuideTooltip();
+      });
+
+      let activeTipTooltip = null;
+
+      function closeTipTooltip() {
+        if (activeTipTooltip) {
+          activeTipTooltip.remove();
+          activeTipTooltip = null;
+        }
+        document.removeEventListener('mousedown', handleOutsideTipTooltipClick, true);
+      }
+
+      function handleOutsideTipTooltipClick(event) {
+        if (activeTipTooltip && !activeTipTooltip.contains(event.target) && event.target !== tipChipButton) {
+          closeTipTooltip();
+        }
+      }
+
+      function openTipTooltip() {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'guide-tooltip tip-tooltip';
+
+        const title = document.createElement('div');
+        title.className = 'guide-tooltip-title';
+        title.textContent = 'Writing Tip';
+        tooltip.appendChild(title);
+
+        const points = [
+          "Write down what stakeholders can't tell from the screen alone.",
+          'Base it on policy, flow, transitions, actions, conditions, animations.'
+        ];
+
+        const list = document.createElement('ul');
+        list.className = 'guide-tooltip-list';
+        points.forEach((point) => {
+          const li = document.createElement('li');
+          li.textContent = point;
+          list.appendChild(li);
+        });
+        tooltip.appendChild(list);
+
+        const examples = [
+          'Ex 1) Infinite scroll fires at 80% of the last item while scrolling up.',
+          "Ex 2) 'Next' activates once 1+ character is entered.",
+          'Ex 3) Toast: Fade-in 150ms → holds 3s → Fade-out 200ms.'
+        ];
+
+        const exampleBox = document.createElement('div');
+        exampleBox.className = 'tip-tooltip-examples';
+        examples.forEach((example) => {
+          const line = document.createElement('div');
+          line.textContent = example;
+          exampleBox.appendChild(line);
+        });
+        tooltip.appendChild(exampleBox);
+
+        document.body.appendChild(tooltip);
+
+        const rect = tipChipButton.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        let left = rect.right - tooltipRect.width;
+        left = Math.max(8, Math.min(left, window.innerWidth - tooltipRect.width - 8));
+        let top = rect.bottom + 6;
+        if (top + tooltipRect.height > window.innerHeight - 8) {
+          top = rect.top - tooltipRect.height - 6;
+        }
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+
+        activeTipTooltip = tooltip;
+        setTimeout(() => {
+          document.addEventListener('mousedown', handleOutsideTipTooltipClick, true);
+        }, 0);
+      }
+
+      tipChipButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (activeTipTooltip) {
+          closeTipTooltip();
+          return;
+        }
+        openTipTooltip();
+      });
+
+      let coachMarkDismissed = false;
+      let coachMarkShownOnce = false;
+
+      window.resetCoachMark = function () {
+        parent.postMessage({ pluginMessage: { type: 'reset-coachmark' } }, '*');
+        coachMarkDismissed = false;
+        coachMarkShownOnce = false;
+      };
+
+      function hasSeenToolbarCoachMark() {
+        return coachMarkShownOnce || coachMarkDismissed;
+      }
+
+      function markToolbarCoachMarkSeen() {
+        coachMarkDismissed = true;
+        parent.postMessage({ pluginMessage: { type: 'dismiss-coachmark' } }, '*');
+      }
+
+      let activeCoachMark = null;
+      let activeCoachMarkOverlay = null;
+      let activeCoachMarkSpotlight = null;
+
+      function closeCoachMark() {
+        if (activeCoachMark) {
+          activeCoachMark.remove();
+          activeCoachMark = null;
+        }
+        if (activeCoachMarkOverlay) {
+          activeCoachMarkOverlay.remove();
+          activeCoachMarkOverlay = null;
+        }
+        if (activeCoachMarkSpotlight) {
+          activeCoachMarkSpotlight.remove();
+          activeCoachMarkSpotlight = null;
+        }
+      }
+
+      function dismissCoachMark() {
+        markToolbarCoachMarkSeen();
+        closeCoachMark();
+      }
+
+      function showToolbarCoachMark() {
+        if (hasSeenToolbarCoachMark() || activeCoachMark || fieldCard.hidden) {
+          return;
+        }
+
+        const overlay = document.createElement('div');
+        overlay.className = 'coach-mark-overlay';
+        overlay.addEventListener('click', (event) => {
+          event.stopPropagation();
+        });
+        document.body.appendChild(overlay);
+        activeCoachMarkOverlay = overlay;
+
+        const spotlightPadding = 8;
+        const targetRect = mainToolbar.getBoundingClientRect();
+        const spotlight = document.createElement('div');
+        spotlight.className = 'coach-mark-spotlight';
+        spotlight.style.left = `${targetRect.left - spotlightPadding}px`;
+        spotlight.style.top = `${targetRect.top - spotlightPadding}px`;
+        spotlight.style.width = `${targetRect.width + spotlightPadding * 2}px`;
+        spotlight.style.height = `${targetRect.height + spotlightPadding * 2}px`;
+        document.body.appendChild(spotlight);
+        activeCoachMarkSpotlight = spotlight;
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'guide-tooltip coach-mark-tooltip';
+
+        const title = document.createElement('div');
+        title.className = 'guide-tooltip-title';
+        title.textContent = 'What these buttons do';
+        tooltip.appendChild(title);
+
+        const items = [
+          { label: 'Title', desc: 'Start a new numbered item' },
+          { label: 'Sub-item', desc: 'Add a sub marker (1-1, 1-2...)' },
+          { label: 'Detail', desc: 'Add a detail/description line' },
+          { label: 'Phrase', desc: 'Insert a saved phrase' }
+        ];
+
+        const list = document.createElement('ul');
+        list.className = 'guide-tooltip-list';
+        items.forEach((item) => {
+          const li = document.createElement('li');
+          const label = document.createElement('strong');
+          label.textContent = item.label;
+          li.appendChild(label);
+          li.appendChild(document.createTextNode(` : ${item.desc}`));
+          list.appendChild(li);
+        });
+        tooltip.appendChild(list);
+
+        const footer = document.createElement('div');
+        footer.className = 'coach-mark-footer';
+
+        const neverShowBtn = document.createElement('button');
+        neverShowBtn.type = 'button';
+        neverShowBtn.className = 'coach-mark-never-show';
+        neverShowBtn.innerHTML = '<span class="coach-mark-never-show-icon" aria-hidden="true">&#10005;</span> Never show up again';
+        neverShowBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          dismissCoachMark();
+        });
+        footer.appendChild(neverShowBtn);
+
+        const dismissBtn = document.createElement('button');
+        dismissBtn.type = 'button';
+        dismissBtn.className = 'coach-mark-dismiss';
+        dismissBtn.textContent = 'Got it';
+        dismissBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          closeCoachMark();
+        });
+        footer.appendChild(dismissBtn);
+
+        tooltip.appendChild(footer);
+
+        document.body.appendChild(tooltip);
+
+        const tooltipRect = tooltip.getBoundingClientRect();
+        let left = targetRect.left;
+        left = Math.max(8, Math.min(left, window.innerWidth - tooltipRect.width - 8));
+        const spaceBelow = window.innerHeight - (targetRect.bottom + spotlightPadding);
+        let top;
+        if (spaceBelow >= tooltipRect.height + 16) {
+          top = targetRect.bottom + spotlightPadding + 10;
+          tooltip.classList.add('arrow-up');
+        } else {
+          top = targetRect.top - spotlightPadding - tooltipRect.height - 10;
+          tooltip.classList.add('arrow-down');
+        }
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+
+        activeCoachMark = tooltip;
+        coachMarkShownOnce = true;
+      }
+
+      function getDragAfterElement(container, y, selector) {
+        const elements = [...container.querySelectorAll(selector)].filter((el) => !el.classList.contains('dragging'));
+        return elements.reduce((closest, child) => {
+          const box = child.getBoundingClientRect();
+          const offset = y - (box.top + box.height / 2);
+          if (offset < 0 && offset > closest.offset) {
+            return { offset, element: child };
+          }
+          return closest;
+        }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+      }
+
+      function animateReorder(items, mutate) {
+        const firstRects = new Map(items.map((el) => [el, el.getBoundingClientRect()]));
+
+        mutate();
+
+        items.forEach((el) => {
+          if (el.classList.contains('dragging')) {
+            return;
+          }
+          const first = firstRects.get(el);
+          if (!first) {
+            return;
+          }
+          const last = el.getBoundingClientRect();
+          const deltaY = first.top - last.top;
+          if (Math.abs(deltaY) < 0.5) {
+            return;
+          }
+          el.style.transition = 'none';
+          el.style.transform = `translateY(${deltaY}px)`;
+          requestAnimationFrame(() => {
+            el.style.transition = 'transform 160ms ease';
+            el.style.transform = '';
+          });
+        });
+      }
+
+      function reorderWithinContainer(container, dragging, afterElement, selector) {
+        const currentNext = dragging.nextElementSibling;
+        const noChange = afterElement ? currentNext === afterElement : currentNext === null;
+        if (noChange) {
+          return;
+        }
+
+        const items = [...container.querySelectorAll(selector)];
+        animateReorder(items, () => {
+          if (!afterElement) {
+            container.appendChild(dragging);
+          } else {
+            container.insertBefore(dragging, afterElement);
+          }
+        });
+      }
+
+      function commitMarkerOrder() {
+        const entries = [...markerStack.children];
+        let loadedCounter = 0;
+
+        entries.forEach((entry) => {
+          if (entry.dataset.loaded === 'true') {
+            loadedCounter += 1;
+            const chip = entry.querySelector('.marker-chip');
+            const numberEl = entry.querySelector('.marker-number');
+            if (chip) chip.textContent = String(loadedCounter);
+            if (numberEl) numberEl.textContent = String(loadedCounter);
+          }
+        });
+
+        const realOrder = entries
+          .map((entry) => entry.dataset.nodeId)
+          .filter((nodeId) => nodeId && !nodeId.startsWith('loaded-'));
+
+        if (realOrder.length > 0) {
+          parent.postMessage({ pluginMessage: { type: 'reorder-markers', order: realOrder } }, '*');
+        }
+      }
+
+      function commitFieldOrder(entry) {
+        if (!entry) {
+          return;
+        }
+
+        const titleRows = [...entry.querySelectorAll('.field-row')].filter((row) => row.querySelector('.title-chip'));
+        const previousOrder = titleRows.map((row) => row.dataset.subMarkerLabel);
+
+        reindexTitleFields(entry);
+        updateTableButtonState();
+
+        if (titleRows.length === 0 || entry.dataset.loaded === 'true' || !entry.dataset.nodeId) {
+          return;
+        }
+
+        parent.postMessage({
+          pluginMessage: {
+            type: 'reorder-title-markers',
+            parentNodeId: entry.dataset.nodeId,
+            order: previousOrder
+          }
+        }, '*');
+      }
+
       function activateEntry(entry) {
         activeEntry = entry;
         titleInput = entry.querySelector('.title-inline');
@@ -648,13 +1571,36 @@
         syncSingleFocusState(entry, null);
       }
 
-      function createMarkerEntry(number, nodeId) {
+      function createMarkerEntry(number, nodeId, options = {}) {
         const entry = document.createElement('div');
         entry.className = 'marker-entry is-inactive';
         entry.dataset.nodeId = nodeId;
+        if (options.loaded) {
+          entry.dataset.loaded = 'true';
+        }
 
         const markerBox = document.createElement('div');
         markerBox.className = 'marker-box';
+
+        const entryHandle = document.createElement('div');
+        entryHandle.className = 'entry-handle';
+        entryHandle.setAttribute('draggable', 'true');
+        entryHandle.setAttribute('aria-label', 'Reorder marker');
+        entryHandle.textContent = '⠿';
+        entryHandle.addEventListener('dragstart', (event) => {
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', nodeId);
+          markerStack.classList.add('is-dragging');
+          requestAnimationFrame(() => entry.classList.add('dragging'));
+        });
+        entryHandle.addEventListener('dragend', () => {
+          entry.classList.remove('dragging');
+          markerStack.classList.remove('is-dragging');
+          commitMarkerOrder();
+        });
+
+        const markerContent = document.createElement('div');
+        markerContent.className = 'marker-content';
 
         const chip = document.createElement('button');
         chip.type = 'button';
@@ -670,10 +1616,10 @@
           }
         });
 
-        const input = document.createElement('input');
+        const input = document.createElement('textarea');
         input.className = 'title-inline';
-        input.type = 'text';
-        input.placeholder = '제목을 입력하세요';
+        input.rows = 1;
+        input.placeholder = 'Enter a title';
         input.addEventListener('focusin', () => {
           lastFocusedTextField = input;
           const targetEntry = [...markerStack.children].find((entryNode) => entryNode.dataset.nodeId === nodeId);
@@ -681,14 +1627,23 @@
             activateEntry(targetEntry);
           }
         });
+        input.addEventListener('input', () => {
+          autoResizeTextarea(input);
+          updateTableButtonState();
+        });
 
         const deleteButton = document.createElement('button');
         deleteButton.type = 'button';
         deleteButton.className = 'marker-delete-btn';
-        deleteButton.setAttribute('aria-label', '마커 삭제');
-        deleteButton.textContent = '×';
+        deleteButton.setAttribute('aria-label', 'Delete marker');
+        deleteButton.innerHTML = TRASH_ICON_HTML;
         deleteButton.addEventListener('click', (event) => {
           event.stopPropagation();
+          if (entry.dataset.loaded === 'true') {
+            entry.remove();
+            updateTableButtonState();
+            return;
+          }
           parent.postMessage({ pluginMessage: { type: 'delete-active-item', nodeId } }, '*');
         });
 
@@ -696,26 +1651,44 @@
         numberEl.className = 'marker-number';
         numberEl.textContent = String(number);
 
-        markerBox.appendChild(chip);
-        markerBox.appendChild(input);
+        markerContent.appendChild(chip);
+        markerContent.appendChild(input);
+        markerContent.appendChild(numberEl);
+        markerBox.appendChild(entryHandle);
+        markerBox.appendChild(markerContent);
         markerBox.appendChild(deleteButton);
-        markerBox.appendChild(numberEl);
 
         const entryFields = document.createElement('div');
         entryFields.className = 'field-list';
+        entryFields.addEventListener('dragover', (event) => {
+          event.preventDefault();
+          const dragging = entryFields.querySelector('.field-row.dragging');
+          if (!dragging) {
+            return;
+          }
+          const afterElement = getDragAfterElement(entryFields, event.clientY, '.field-row');
+          reorderWithinContainer(entryFields, dragging, afterElement, '.field-row');
+        });
 
         entry.appendChild(markerBox);
         entry.appendChild(entryFields);
         markerStack.appendChild(entry);
         activateEntry(entry);
-        input.focus();
+        if (!options.skipFocus) {
+          input.focus();
+        }
         return entry;
       }
 
       function showMainView() {
         phraseScreen.classList.remove('visible');
+        mainHeading.textContent = 'Description Assistant';
+        phraseBackButton.hidden = true;
+        phraseAddButton.hidden = true;
+        createMarkerButton.hidden = false;
         fieldCard.hidden = false;
         editorCard.hidden = false;
+        helpText.textContent = 'Press the button to create a UX description';
         updateTableButtonState();
 
         const restoreTarget = lastFocusedTextField || titleInput;
@@ -726,13 +1699,17 @@
 
       function showPhraseView() {
         lastFocusedTextField = getActiveTextField() || titleInput || lastFocusedTextField;
+        mainHeading.textContent = 'Frequent Phrases';
+        phraseBackButton.hidden = false;
+        createMarkerButton.hidden = true;
+        phraseAddButton.hidden = false;
         fieldCard.hidden = true;
         editorCard.hidden = true;
         if (saveButton) {
           saveButton.hidden = true;
         }
         phraseScreen.classList.add('visible');
-        helpText.textContent = '자주 쓰는 문장을 등록하고 선택해 메인 입력에 넣을 수 있습니다.';
+        helpText.textContent = 'Register frequently used phrases and select one to insert into the main input.';
         phraseInput.focus();
       }
 
@@ -750,12 +1727,12 @@
       }
 
       function getActiveTextField() {
-        if (lastFocusedTextField && lastFocusedTextField.tagName === 'INPUT') {
+        if (lastFocusedTextField && (lastFocusedTextField.tagName === 'INPUT' || lastFocusedTextField.tagName === 'TEXTAREA')) {
           return lastFocusedTextField;
         }
 
         const focused = document.activeElement;
-        if (focused && focused.tagName === 'INPUT' && focused.closest('.field-row, .title-inline')) {
+        if (focused && (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA') && focused.closest('.field-row, .title-inline')) {
           lastFocusedTextField = focused;
           return focused;
         }
@@ -770,16 +1747,38 @@
 
         const nextValue = `${targetInput.value}${targetInput.value ? ' ' : ''}${phrase}`;
         targetInput.value = nextValue;
+        if (targetInput.tagName === 'TEXTAREA') {
+          targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
         lastFocusedTextField = targetInput;
         targetInput.focus();
+      }
+
+      function reindexTitleFields(entry) {
+        if (!entry) {
+          return;
+        }
+
+        const markerValue = entry.querySelector('.marker-number')?.textContent || '1';
+        let subNumber = 1;
+        entry.querySelectorAll('.field-row').forEach((row) => {
+          const chip = row.querySelector('.title-chip');
+          if (!chip) {
+            return;
+          }
+
+          const nextLabel = `${markerValue}-${subNumber}`;
+          chip.textContent = nextLabel;
+          row.dataset.subMarkerLabel = nextLabel;
+          subNumber += 1;
+        });
       }
 
       function renderPhraseList() {
         phraseList.innerHTML = '';
 
         registeredPhrases.forEach((phrase) => {
-          const item = document.createElement('button');
-          item.type = 'button';
+          const item = document.createElement('div');
           item.className = 'phrase-item';
 
           const text = document.createElement('span');
@@ -787,7 +1786,7 @@
 
           const action = document.createElement('button');
           action.type = 'button';
-          action.textContent = '삽입';
+          action.textContent = 'Insert';
           action.addEventListener('click', (event) => {
             event.stopPropagation();
             insertPhraseIntoActiveField(phrase);
@@ -805,53 +1804,96 @@
         });
       }
 
-      function appendField(type) {
+      function appendField(type, options = {}) {
         const currentEntry = activeEntry || null;
         const targetFieldList = currentEntry ? currentEntry.querySelector('.field-list') : null;
         if (!targetFieldList) {
-          return;
+          return null;
         }
 
         const row = document.createElement('div');
         row.className = 'field-row is-inactive';
         row.dataset.focused = 'false';
+        let bulletPrefix = '';
+
+        const rowHandle = document.createElement('div');
+        rowHandle.className = 'row-handle';
+        rowHandle.setAttribute('draggable', 'true');
+        rowHandle.setAttribute('aria-label', 'Reorder field');
+        rowHandle.textContent = '⠿';
+        rowHandle.addEventListener('dragstart', (event) => {
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', 'field-row');
+          targetFieldList.classList.add('is-dragging');
+          requestAnimationFrame(() => row.classList.add('dragging'));
+        });
+        rowHandle.addEventListener('dragend', () => {
+          row.classList.remove('dragging');
+          targetFieldList.classList.remove('is-dragging');
+          commitFieldOrder(currentEntry);
+        });
+
+        const fieldContent = document.createElement('div');
+        fieldContent.className = 'field-content';
 
         const chip = document.createElement('div');
         chip.className = 'field-chip';
 
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = '입력하세요';
+        const input = document.createElement('textarea');
+        input.rows = 1;
+        input.placeholder = 'Enter text';
 
         const deleteButton = document.createElement('button');
         deleteButton.type = 'button';
         deleteButton.className = 'field-delete-btn';
-        deleteButton.setAttribute('aria-label', '필드 삭제');
-        deleteButton.textContent = '×';
-        deleteButton.addEventListener('click', () => {
+        deleteButton.setAttribute('aria-label', 'Delete field');
+        deleteButton.innerHTML = TRASH_ICON_HTML;
+        deleteButton.addEventListener('click', (event) => {
+          event.stopPropagation();
+          if (type === 'Title' && row.dataset.subMarkerLabel && currentNodeId && currentEntry?.dataset.loaded !== 'true') {
+            parent.postMessage({
+              pluginMessage: {
+                type: 'delete-title-marker',
+                markerLabel: row.dataset.subMarkerLabel,
+                parentNodeId: currentNodeId
+              }
+            }, '*');
+          }
           row.remove();
+          reindexTitleFields(currentEntry);
+          updateTableButtonState();
         });
 
         if (type === 'Title') {
-          const titleValue = getNextTitleValue();
+          const titleValue = options.presetLabel || getNextTitleValue();
+          row.classList.add('title-field');
           chip.textContent = titleValue;
           chip.classList.add('title-chip');
-          input.placeholder = '내용을 입력하세요.';
-          parent.postMessage({ pluginMessage: { type: 'create-title-marker', markerLabel: titleValue } }, '*');
-        } else if (type === 'Dot') {
-          chip.textContent = '·';
-          chip.classList.add('dot-chip');
-          input.placeholder = '내용을 입력하세요.';
+          row.dataset.subMarkerLabel = titleValue;
+          row.dataset.parentNodeId = currentNodeId || '';
+          input.placeholder = 'e.g. Login failure screen';
+          if (!options.silent) {
+            parent.postMessage({
+              pluginMessage: {
+                type: 'create-title-marker',
+                markerLabel: titleValue,
+                parentNodeId: currentNodeId
+              }
+            }, '*');
+          }
         } else if (type === 'Dash') {
           chip.textContent = '-';
-          chip.classList.add('dash-chip');
-          input.placeholder = '내용을 입력하세요.';
+          chip.classList.add('dash-chip', 'field-chip-hidden');
+          input.placeholder = '- e.g. Navigate to the next screen on button click';
+          if (options.presetValue === undefined || options.presetValue === null) {
+            bulletPrefix = '- ';
+          }
         } else if (type === 'Phrases') {
-          chip.textContent = '문';
+          chip.textContent = 'P';
           chip.classList.add('phrase-chip');
-          input.placeholder = '자주 사용하는 문장을 입력하세요';
+          input.placeholder = 'Enter a frequently used phrase';
           showPhraseView();
-          return;
+          return null;
         }
 
         const setFieldActiveState = (nextActive) => {
@@ -872,6 +1914,43 @@
           lastFocusedTextField = input;
           setFieldActiveState(true);
         });
+        input.addEventListener('beforeinput', (event) => {
+          if (!bulletPrefix || !input.dataset.bulletApplied) {
+            return;
+          }
+          const prefixLen = bulletPrefix.length;
+          const start = input.selectionStart;
+          const end = input.selectionEnd;
+          const inputType = event.inputType || '';
+
+          if (start !== end) {
+            if (start < prefixLen) {
+              event.preventDefault();
+            }
+            return;
+          }
+
+          if (inputType === 'deleteContentBackward' && start <= prefixLen) {
+            event.preventDefault();
+            return;
+          }
+
+          if (start < prefixLen && (inputType === 'deleteContentForward' || inputType.startsWith('insert'))) {
+            event.preventDefault();
+          }
+        });
+        input.addEventListener('input', () => {
+          if (bulletPrefix && !input.dataset.bulletApplied) {
+            if (input.value.length > 0 && !input.value.startsWith(bulletPrefix)) {
+              const caret = input.selectionStart + bulletPrefix.length;
+              input.value = bulletPrefix + input.value;
+              input.setSelectionRange(caret, caret);
+            }
+            input.dataset.bulletApplied = 'true';
+          }
+          autoResizeTextarea(input);
+          updateTableButtonState();
+        });
         input.addEventListener('focusout', (event) => {
           const nextTarget = event.relatedTarget;
           if (nextTarget && row.contains(nextTarget)) {
@@ -890,16 +1969,54 @@
           setFieldActiveState(true);
         });
 
-        row.appendChild(chip);
-        row.appendChild(input);
+        if (options.presetValue !== undefined && options.presetValue !== null) {
+          input.value = options.presetValue;
+          autoResizeTextarea(input);
+        }
+
+        fieldContent.appendChild(chip);
+        fieldContent.appendChild(input);
+        row.appendChild(rowHandle);
+        row.appendChild(fieldContent);
         row.appendChild(deleteButton);
-        targetFieldList.appendChild(row);
+
+        const anchorRow = lastFocusedTextField ? lastFocusedTextField.closest('.field-row') : null;
+        let indentReferenceRow = null;
+        if (anchorRow && anchorRow.parentElement === targetFieldList) {
+          anchorRow.after(row);
+          indentReferenceRow = anchorRow;
+        } else if (lastFocusedTextField === titleInput) {
+          targetFieldList.prepend(row);
+        } else {
+          indentReferenceRow = targetFieldList.lastElementChild;
+          targetFieldList.appendChild(row);
+        }
+
+        if (type === 'Dash' && indentReferenceRow &&
+          (indentReferenceRow.classList.contains('title-field') || indentReferenceRow.classList.contains('dash-indented'))) {
+          row.classList.add('dash-indented');
+        }
+
         targetFieldList.scrollTop = targetFieldList.scrollHeight;
-        input.focus();
+        if (!options.silent) {
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        }
+        return row;
       }
 
       createMarkerButton.addEventListener('click', () => {
         parent.postMessage({ pluginMessage: { type: 'create-marker' } }, '*');
+      });
+
+      markerStack.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        const dragging = markerStack.querySelector('.marker-entry.dragging');
+        if (!dragging) {
+          return;
+        }
+        const afterElement = getDragAfterElement(markerStack, event.clientY, '.marker-entry');
+        reorderWithinContainer(markerStack, dragging, afterElement, '.marker-entry');
       });
 
       markerDragHandle.addEventListener('dragstart', (event) => {
@@ -915,7 +2032,7 @@
             return;
           }
 
-          if (tag === 'Title' || tag === 'Dot' || tag === 'Dash') {
+          if (tag === 'Title' || tag === 'Dash') {
             appendField(tag);
           }
         });
@@ -931,6 +2048,7 @@
         registeredPhrases.push(newPhrase);
         renderPhraseList();
         phraseInput.value = '';
+        updatePhraseButtonState();
         phraseInput.focus();
       });
 
@@ -946,8 +2064,55 @@
         if (markerStack.children.length === 0) {
           return;
         }
-        parent.postMessage({ pluginMessage: { type: 'build-table' } }, '*');
+        parent.postMessage({
+          pluginMessage: {
+            type: 'build-table',
+            rows: collectDescriptionRows(),
+            entries: collectEntries(),
+            tableId: currentTableId
+          }
+        }, '*');
       });
+
+      function loadTableEntries(tableId, entries) {
+        currentTableId = tableId;
+        markerStack.innerHTML = '';
+        activeEntry = null;
+        currentNodeId = null;
+        titleInput = null;
+        markerNumber = null;
+        markerChip = null;
+
+        (entries || []).forEach((entryData, index) => {
+          const nodeId = `loaded-${tableId}-${index}`;
+          const entry = createMarkerEntry(entryData.number || index + 1, nodeId, { loaded: true, skipFocus: true });
+          const titleField = entry.querySelector('.title-inline');
+          if (titleField) {
+            titleField.value = entryData.title || '';
+            autoResizeTextarea(titleField);
+          }
+
+          (entryData.fields || []).forEach((field) => {
+            appendField(field.kind, { silent: true, presetLabel: field.label, presetValue: field.value });
+
+            if (field.kind === 'Title') {
+              const suffix = Number(String(field.label || '').split('-')[1]);
+              if (Number.isFinite(suffix)) {
+                const prevMax = titleCounterByMarker.get(nodeId) || 0;
+                titleCounterByMarker.set(nodeId, Math.max(prevMax, suffix));
+              }
+            }
+          });
+        });
+
+        if (markerStack.children.length > 0) {
+          activateEntry(markerStack.children[markerStack.children.length - 1]);
+        }
+
+        editorCard.hidden = false;
+        helpText.textContent = 'Loaded existing memo table data. You can continue editing or adding to it.';
+        updateTableButtonState();
+      }
 
       window.addEventListener('message', (event) => {
         const message = event.data.pluginMessage;
@@ -955,6 +2120,67 @@
 
         if (message.type === 'active-list-updated') {
           renderActiveList(message.records || []);
+        }
+
+        if (message.type === 'selection-state') {
+          hasCreatableSelection = Boolean(message.hasSelection);
+          updateTableButtonState();
+        }
+
+        if (message.type === 'coachmark-state') {
+          if (message.dismissed) {
+            coachMarkDismissed = true;
+            closeCoachMark();
+          }
+        }
+
+        if (message.type === 'sub-markers-updated') {
+          const entry = [...markerStack.children].find((candidate) => candidate.dataset.nodeId === message.parentNodeId);
+          if (!entry) {
+            return;
+          }
+
+          const labels = message.labels || [];
+          const titleRows = [...entry.querySelectorAll('.field-row')]
+            .filter((row) => row.querySelector('.title-chip'));
+          titleRows.slice(labels.length).forEach((row) => row.remove());
+          titleRows.slice(0, labels.length).forEach((row, index) => {
+            const label = labels[index];
+            const chip = row.querySelector('.title-chip');
+            if (chip) {
+              chip.textContent = label;
+            }
+            row.dataset.subMarkerLabel = label;
+          });
+          reindexTitleFields(entry);
+        }
+
+        if (message.type === 'sub-marker-ready') {
+          const entry = [...markerStack.children].find((candidate) => candidate.dataset.nodeId === message.parentNodeId);
+          if (!entry) {
+            return;
+          }
+          const row = [...entry.querySelectorAll('.field-row')].find((candidate) => {
+            return candidate.querySelector('.title-chip') && candidate.dataset.subMarkerLabel === message.markerLabel;
+          });
+          if (row) {
+            row.dataset.subMarkerNodeId = message.nodeId;
+          }
+        }
+
+        if (message.type === 'sub-marker-removed') {
+          const entry = [...markerStack.children].find((candidate) => candidate.dataset.nodeId === message.parentNodeId);
+          if (!entry) {
+            return;
+          }
+          const row = [...entry.querySelectorAll('.field-row')].find((candidate) => {
+            return candidate.dataset.subMarkerNodeId === message.nodeId;
+          });
+          if (row) {
+            row.remove();
+            reindexTitleFields(entry);
+            updateTableButtonState();
+          }
         }
 
         if (message.type === 'marker-ready') {
@@ -970,26 +2196,35 @@
 
           titleInput = entry.querySelector('.title-inline');
           titleInput.focus();
-          helpText.textContent = '태그를 추가하고 제목을 입력한 뒤 저장 버튼을 눌러 메모 표를 만드세요.';
+          helpText.textContent = 'Press the button to create a UX description';
           if (message.title) {
             titleInput.value = message.title;
           }
         }
 
         if (message.type === 'table-created') {
-          helpText.textContent = '메모 표가 캔버스에 배치되었습니다. 필요하면 위치를 이동해 보세요.';
+          currentTableId = null;
+          helpText.textContent = 'The memo table has been placed on the canvas. Move it if needed.';
           if (titleInput) {
             titleInput.value = '';
           }
+        }
+
+        if (message.type === 'load-table-data') {
+          const isBusyEditingThisTable = currentTableId === message.tableId &&
+            (markerStack.classList.contains('is-dragging') || (document.activeElement && markerStack.contains(document.activeElement)));
+          if (isBusyEditingThisTable) {
+            return;
+          }
+          loadTableEntries(message.tableId, message.entries || []);
         }
       });
 
       renderPhraseList();
       updateTableButtonState();
+      phraseInput.addEventListener('input', updatePhraseButtonState);
+      updatePhraseButtonState();
       renderActiveList([]);
-      if (saveButton) {
-        saveButton.hidden = true;
-      }
     </script>
   </body>
 </html>
