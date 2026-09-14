@@ -706,24 +706,55 @@
         cursor: pointer;
       }
 
-      .coach-mark-never-show {
-        border: none;
-        background: transparent;
+      .coach-mark-toggle-note {
         color: var(--muted);
         font-size: 11px;
         font-weight: 500;
-        cursor: pointer;
-        padding: 0;
-        white-space: nowrap;
       }
 
-      .coach-mark-never-show:hover {
+      .guide-toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+        font-size: 12px;
         color: var(--text);
       }
 
-      .coach-mark-never-show-icon {
-        color: var(--danger);
-        font-weight: 700;
+      .guide-toggle-switch {
+        position: relative;
+        width: 34px;
+        height: 20px;
+        border-radius: 999px;
+        border: none;
+        background: #d1d5db;
+        cursor: pointer;
+        padding: 0;
+        flex-shrink: 0;
+        transition: background 0.15s ease;
+      }
+
+      .guide-toggle-switch::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: white;
+        transition: transform 0.15s ease;
+      }
+
+      .guide-toggle-switch.is-on {
+        background: var(--primary);
+      }
+
+      .guide-toggle-switch.is-on::after {
+        transform: translateX(14px);
       }
 
       .coach-mark-overlay {
@@ -871,7 +902,7 @@
 
       .phrase-save-btn {
         width: auto;
-        height: 40px;
+        height: 48px;
         margin: 0;
         padding: 0 16px;
         flex: 0 0 auto;
@@ -1210,6 +1241,37 @@
         });
         tooltip.appendChild(list);
 
+        const toggleRow = document.createElement('div');
+        toggleRow.className = 'guide-toggle-row';
+
+        const toggleLabel = document.createElement('span');
+        toggleLabel.textContent = 'Onboarding coach mark';
+        toggleRow.appendChild(toggleLabel);
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'guide-toggle-switch';
+        toggleBtn.setAttribute('role', 'switch');
+        toggleBtn.setAttribute('aria-label', 'Onboarding coach mark');
+        toggleBtn.setAttribute('aria-checked', String(!coachMarkDismissed));
+        toggleBtn.classList.toggle('is-on', !coachMarkDismissed);
+        toggleBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const turningOn = coachMarkDismissed;
+          if (turningOn) {
+            coachMarkDismissed = false;
+            coachMarkShownOnce = false;
+            parent.postMessage({ pluginMessage: { type: 'reset-coachmark' } }, '*');
+          } else {
+            markToolbarCoachMarkSeen();
+          }
+          toggleBtn.classList.toggle('is-on', !coachMarkDismissed);
+          toggleBtn.setAttribute('aria-checked', String(!coachMarkDismissed));
+        });
+        toggleRow.appendChild(toggleBtn);
+
+        tooltip.appendChild(toggleRow);
+
         document.body.appendChild(tooltip);
 
         const rect = guideChipButton.getBoundingClientRect();
@@ -1357,11 +1419,6 @@
         }
       }
 
-      function dismissCoachMark() {
-        markToolbarCoachMarkSeen();
-        closeCoachMark();
-      }
-
       function showToolbarCoachMark() {
         if (hasSeenToolbarCoachMark() || activeCoachMark || fieldCard.hidden) {
           return;
@@ -1416,15 +1473,10 @@
         const footer = document.createElement('div');
         footer.className = 'coach-mark-footer';
 
-        const neverShowBtn = document.createElement('button');
-        neverShowBtn.type = 'button';
-        neverShowBtn.className = 'coach-mark-never-show';
-        neverShowBtn.innerHTML = '<span class="coach-mark-never-show-icon" aria-hidden="true">&#10005;</span> Never show up again';
-        neverShowBtn.addEventListener('click', (event) => {
-          event.stopPropagation();
-          dismissCoachMark();
-        });
-        footer.appendChild(neverShowBtn);
+        const toggleNote = document.createElement('span');
+        toggleNote.className = 'coach-mark-toggle-note';
+        toggleNote.textContent = 'You can turn this on/off in Guide.';
+        footer.appendChild(toggleNote);
 
         const dismissBtn = document.createElement('button');
         dismissBtn.type = 'button';
