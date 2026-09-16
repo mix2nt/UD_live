@@ -71,6 +71,8 @@ let addModeActive = false;
 let suppressSelectionLoad = false;
 let lastMarkerNodeId: string | null = null;
 let lastAnchorSelectionId: string | null = null;
+let currentGroupScreenName: string | null = null;
+let currentGroupScreenNodeId: string | null = null;
 const MARKER_STACK_GAP = 16;
 let watchedTableId: string | null = null;
 let watchedTableSnapshot: string | null = null;
@@ -79,6 +81,7 @@ const subMarkerParentKey = 'subMarkerParentId';
 const subMarkerNumberKey = 'subMarkerNumber';
 const memoTableFlagKey = 'isMemoTable';
 const memoTableDataKey = 'memoTableEntries';
+const memoTableScreenNodeIdKey = 'memoTableScreenNodeId';
 const coachMarkStorageKey = 'nwdaToolbarCoachMarkDismissedV2';
 
 function getNextMarkerNumber(): number {
@@ -430,7 +433,10 @@ async function renderMemoTableFrame(
     [...table.children].forEach((child) => child.remove());
   }
 
-  table.name = 'Memo Table';
+  if (isNewTable) {
+    table.name = currentGroupScreenName || 'Memo Table';
+    table.setPluginData(memoTableScreenNodeIdKey, currentGroupScreenNodeId || '');
+  }
   table.resize(tableWidth, headerHeight + rows.length * minRowHeight);
   table.cornerRadius = 12;
   table.fills = [{ type: 'SOLID', color: { r: 0.99, g: 0.99, b: 1 } }];
@@ -594,6 +600,8 @@ async function buildUnifiedMemoTable(
   activeMarkers = [];
   lastMarkerNodeId = null;
   lastAnchorSelectionId = null;
+  currentGroupScreenName = null;
+  currentGroupScreenNodeId = null;
   figma.ui.postMessage({ type: 'active-list-updated', records: [] });
   figma.ui.postMessage({ type: 'table-created', nodeId: table.id });
 
@@ -606,6 +614,14 @@ async function initializePlugin(): Promise<void> {
   figma.ui.postMessage({ type: 'selection-state', hasSelection: isCreatableSelection() });
   const coachMarkDismissed = await figma.clientStorage.getAsync(coachMarkStorageKey);
   figma.ui.postMessage({ type: 'coachmark-state', dismissed: Boolean(coachMarkDismissed) });
+}
+
+function getTopLevelFrame(node: SceneNode): SceneNode | null {
+  let current: SceneNode = node;
+  while (current.parent && current.parent.type !== 'PAGE' && 'absoluteBoundingBox' in current.parent) {
+    current = current.parent as SceneNode;
+  }
+  return current.parent && current.parent.type === 'PAGE' ? current : null;
 }
 
 function resolveMarkerAnchor(selected: SceneNode | null): { x: number; y: number } {
@@ -674,6 +690,11 @@ async function createTitleMarkerFromSelection(markerLabel: string, parentNodeId:
 
 function createMarkerFromSelection(markerLabel?: string): Promise<void> {
   const targetNode = figma.currentPage.selection[0] || null;
+  if (activeMarkers.length === 0 && targetNode) {
+    const topFrame = getTopLevelFrame(targetNode);
+    currentGroupScreenName = topFrame ? topFrame.name : null;
+    currentGroupScreenNodeId = topFrame ? topFrame.id : null;
+  }
   const anchor = resolveMarkerAnchor(targetNode);
 
   return createMarkerAtPosition(anchor.x, anchor.y, markerLabel);
@@ -790,6 +811,63 @@ function readStoredEntries(node: FrameNode): TableEntryRecord[] {
 function readCurrentTableEntries(node: FrameNode): TableEntryRecord[] {
   const liveRows = readRowsFromTable(node);
   return liveRows.length > 0 ? rowsToEntries(liveRows) : readStoredEntries(node);
+}
+
+const CIRCLED_NUMBERS = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬', '⑭', '⑮', '⑯', '⑰', '⑱', '⑲', '⑳'];
+
+function formatItemNumber(n: number): string {
+  return n >= 1 && n <= CIRCLED_NUMBERS.length ? CIRCLED_NUMBERS[n - 1] : `${n})`;
+}
+
+function buildFigmaUrl(nodeId: string): string {
+  const fileName = encodeURIComponent(figma.root.name);
+  return `https://www.figma.com/file/${figma.fileKey}/${fileName}?node-id=${encodeURIComponent(nodeId)}`;
+}
+
+function buildTableMarkdown(table: FrameNode, entries: TableEntryRecord[]): string {
+  const lines: string[] = [];
+
+  lines.push(`# ${table.name}`);
+  lines.push('');
+
+  const screenNodeId = table.getPluginData(memoTableScreenNodeIdKey);
+  if (screenNodeId && figma.getNodeById(screenNodeId)) {
+    lines.push(`> **Figma:** [View in Figma ↗](${buildFigmaUrl(screenNodeId)})`);
+    lines.push('');
+  }
+
+  lines.push('---');
+
+  entries.forEach((entry) => {
+    lines.push('');
+    const mainLink = committedMarkerLinks.find(
+      (link) => link.tableId === table.id && link.kind === 'main' && link.itemLabel === String(entry.number)
+    );
+    lines.push(`#### ${formatItemNumber(entry.number)} ${entry.title}`);
+    if (mainLink) {
+      lines.push(`[View in Figma ↗](${buildFigmaUrl(mainLink.nodeId)})`);
+    }
+    lines.push('');
+
+    let indentActive = false;
+    entry.fields.forEach((field) => {
+      if (field.kind === 'Title') {
+        const subLink = committedMarkerLinks.find(
+          (link) => link.tableId === table.id && link.kind === 'sub' && link.itemLabel === field.label
+        );
+        lines.push(`- **Sub ${field.label}:** ${field.value}`);
+        if (subLink) {
+          lines.push(`  [↗](${buildFigmaUrl(subLink.nodeId)})`);
+        }
+        indentActive = true;
+      } else {
+        const indent = indentActive ? '  ' : '';
+        lines.push(`${indent}- ${field.value}`);
+      }
+    });
+  });
+
+  return lines.join('\n');
 }
 
 function notifyTableSelection(node: FrameNode): void {
@@ -985,6 +1063,24 @@ async function syncTableAfterMarkerRemoval(tableId: string, removedLinks: Commit
   );
 }
 
+function notifyMarkerSelectionForPanel(mainNodeId: string, selectedNodeId: string): void {
+  const isActiveDraft = activeMarkers.some((item) => item.nodeId === mainNodeId);
+  if (isActiveDraft) {
+    figma.ui.postMessage({ type: 'activate-marker', nodeId: mainNodeId });
+    return;
+  }
+
+  const link = committedMarkerLinks.find((item) => item.nodeId === selectedNodeId);
+  if (link) {
+    figma.ui.postMessage({
+      type: 'activate-marker-by-label',
+      tableId: link.tableId,
+      kind: link.kind,
+      itemLabel: link.itemLabel
+    });
+  }
+}
+
 figma.on('selectionchange', async () => {
   const selected = figma.currentPage.selection[0];
 
@@ -996,6 +1092,17 @@ figma.on('selectionchange', async () => {
     } else {
       notifyTableSelection(selected);
     }
+    return;
+  }
+
+  if (selected && selected.type === 'FRAME' && selected.name.startsWith('Marker ')) {
+    notifyMarkerSelectionForPanel(selected.id, selected.id);
+    return;
+  }
+
+  if (selected && selected.type === 'FRAME' && selected.name.startsWith('Sub Marker ')) {
+    const parentId = selected.getPluginData(subMarkerParentKey) || selected.id;
+    notifyMarkerSelectionForPanel(parentId, selected.id);
     return;
   }
 
@@ -1098,6 +1205,30 @@ figma.ui.onmessage = async (msg) => {
 
   if (msg.type === 'reset-coachmark') {
     await figma.clientStorage.deleteAsync(coachMarkStorageKey);
+    return;
+  }
+
+  if (msg.type === 'request-export-tables') {
+    const tables = (figma.currentPage.findAll(
+      (node) => node.type === 'FRAME' && node.getPluginData(memoTableFlagKey) === 'true'
+    ) as FrameNode[]).map((node) => ({ id: node.id, name: node.name }));
+    figma.ui.postMessage({ type: 'export-tables-list', tables });
+    return;
+  }
+
+  if (msg.type === 'show-toast') {
+    const payload = msg as { type: 'show-toast'; message: string; error?: boolean };
+    figma.notify(payload.message, payload.error ? { error: true } : undefined);
+    return;
+  }
+
+  if (msg.type === 'generate-export-markdown') {
+    const payload = msg as { type: 'generate-export-markdown'; tableIds: string[] };
+    const blocks = payload.tableIds
+      .map((tableId) => figma.getNodeById(tableId))
+      .filter((node): node is FrameNode => !!node && node.type === 'FRAME')
+      .map((table) => buildTableMarkdown(table, readCurrentTableEntries(table)));
+    figma.ui.postMessage({ type: 'export-markdown-ready', markdown: blocks.join('\n\n---\n\n') });
     return;
   }
 

@@ -35,6 +35,7 @@
       }
 
       .panel {
+        position: relative;
         width: 100%;
         height: 100%;
         max-width: none;
@@ -43,6 +44,213 @@
         gap: 10px;
         padding: 16px;
         background: var(--bg);
+      }
+
+      .export-button {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 10;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        background: white;
+        color: var(--text);
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+      }
+
+      .export-button:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+      }
+
+      .export-button svg {
+        width: 16px;
+        height: 16px;
+        pointer-events: none;
+      }
+
+      .export-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        background: rgba(15, 23, 42, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+
+      .export-modal {
+        box-sizing: border-box;
+        background: white;
+        border-radius: 14px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+        padding: 16px;
+        width: min(400px, 100%);
+        min-width: 0;
+        max-width: 100%;
+        max-height: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .export-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 6px;
+      }
+
+      .export-modal-title {
+        flex: 1;
+        min-width: 0;
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .export-modal-close {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+      }
+
+      .export-modal-close:hover {
+        background: #f3f4f6;
+        color: var(--text);
+      }
+
+      .export-select-all {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--line);
+        cursor: pointer;
+      }
+
+      .export-select-all input[type="checkbox"],
+      .export-table-item input[type="checkbox"] {
+        flex-shrink: 0;
+        margin: 0;
+      }
+
+      .export-table-name {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .export-table-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+        max-height: 260px;
+      }
+
+      .export-table-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--text);
+        padding: 6px 4px;
+        border-radius: 8px;
+        cursor: pointer;
+        min-width: 0;
+      }
+
+      .export-table-item:hover {
+        background: #f3f4f6;
+      }
+
+      .export-empty {
+        font-size: 13px;
+        color: var(--muted);
+        padding: 12px 0;
+        text-align: center;
+      }
+
+      .export-modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .export-footer-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .export-footer-actions[hidden] {
+        display: none !important;
+      }
+
+      .export-secondary-btn {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: white;
+        color: var(--text);
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .export-secondary-btn:hover:not(:disabled) {
+        background: #f3f4f6;
+      }
+
+      .export-secondary-btn:disabled {
+        color: #aab0bb;
+        border-color: #e5e7eb;
+        cursor: not-allowed;
+      }
+
+      .export-preview {
+        min-height: 160px;
+        max-height: 220px;
+        font-family: monospace;
+        font-size: 11px;
+        line-height: 1.5;
+        resize: none;
+        white-space: pre;
       }
 
       .title-bar {
@@ -554,6 +762,14 @@
         color: var(--text);
       }
 
+      input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        padding: 0;
+        border-radius: 3px;
+        flex: 0 0 auto;
+      }
+
       textarea {
         resize: none;
         height: auto;
@@ -704,6 +920,12 @@
         font-size: 12px;
         font-weight: 700;
         cursor: pointer;
+      }
+
+      .coach-mark-dismiss:disabled {
+        background: #d1d5db;
+        color: #6b7280;
+        cursor: not-allowed;
       }
 
       .coach-mark-toggle-note {
@@ -920,18 +1142,22 @@
   </head>
   <body>
     <div class="panel">
+      <button type="button" class="export-button" id="exportButton" aria-label="Export">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 10.5V2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M5.2 5.3L8 2.5L10.8 5.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 9.5V12C3 12.55 3.45 13 4 13H12C12.55 13 13 12.55 13 12V9.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+
       <div class="prompt" id="idlePrompt" hidden>Select an element, then click the Add description button.</div>
 
       <div class="title-bar main-title-bar" id="mainTitleBar">
         <button class="back-btn" type="button" id="phraseBackButton" aria-label="Back" hidden>&#8249;</button>
         <h2 id="mainHeading">Description Assistant</h2>
+        <button type="button" class="guide-chip" id="guideChipButton">Guide</button>
       </div>
 
       <div class="help-row" id="helpRow">
         <div class="help" id="helpText">
           Press the button to create a UX description
         </div>
-        <button type="button" class="guide-chip" id="guideChipButton">Guide</button>
       </div>
 
       <div class="toolbar" id="mainToolbar">
@@ -988,6 +1214,7 @@
       const createMarkerButton = document.getElementById('createMarkerButton');
       const markerDragHandle = document.getElementById('markerDragHandle');
       const tableDragHandle = document.getElementById('tableDragHandle');
+      const exportButton = document.getElementById('exportButton');
 
       function hasDescriptionInput() {
         return [...markerStack.querySelectorAll('input, textarea')]
@@ -2186,6 +2413,30 @@
           }
         }
 
+        if (message.type === 'activate-marker') {
+          const entry = [...markerStack.children].find((candidate) => candidate.dataset.nodeId === message.nodeId);
+          if (entry) {
+            lastFocusedTextField = null;
+            activateEntry(entry);
+            entry.scrollIntoView({ block: 'nearest' });
+          }
+        }
+
+        if (message.type === 'activate-marker-by-label') {
+          if (currentTableId === message.tableId) {
+            const mainNumber = message.kind === 'sub' ? String(message.itemLabel).split('-')[0] : String(message.itemLabel);
+            const entry = [...markerStack.children].find((candidate) => {
+              const chip = candidate.querySelector('.marker-chip');
+              return chip && chip.textContent.trim() === mainNumber;
+            });
+            if (entry) {
+              lastFocusedTextField = null;
+              activateEntry(entry);
+              entry.scrollIntoView({ block: 'nearest' });
+            }
+          }
+        }
+
         if (message.type === 'sub-markers-updated') {
           const entry = [...markerStack.children].find((candidate) => candidate.dataset.nodeId === message.parentNodeId);
           if (!entry) {
@@ -2270,6 +2521,226 @@
           }
           loadTableEntries(message.tableId, message.entries || []);
         }
+
+        if (message.type === 'export-tables-list') {
+          openExportModal(message.tables || []);
+        }
+
+        if (message.type === 'export-markdown-ready') {
+          if (activeExportOverlay) {
+            const preview = activeExportOverlay.querySelector('.export-preview');
+            if (preview) {
+              preview.value = message.markdown || '';
+            }
+            const actions = activeExportOverlay.querySelector('.export-footer-actions');
+            if (actions) {
+              actions.hidden = !message.markdown;
+            }
+          }
+        }
+      });
+
+      let activeExportOverlay = null;
+
+      function closeExportModal() {
+        if (activeExportOverlay) {
+          activeExportOverlay.remove();
+          activeExportOverlay = null;
+        }
+      }
+
+      function openExportModal(tables) {
+        closeExportModal();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'export-overlay';
+        overlay.addEventListener('click', () => {
+          closeExportModal();
+        });
+
+        const modal = document.createElement('div');
+        modal.className = 'export-modal';
+        modal.addEventListener('click', (event) => {
+          event.stopPropagation();
+        });
+
+        const header = document.createElement('div');
+        header.className = 'export-modal-header';
+
+        const title = document.createElement('div');
+        title.className = 'export-modal-title';
+        title.textContent = 'Export';
+        header.appendChild(title);
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'export-modal-close';
+        closeBtn.setAttribute('aria-label', 'Close');
+        closeBtn.innerHTML = '<span aria-hidden="true">&#10005;</span>';
+        closeBtn.addEventListener('click', () => closeExportModal());
+        header.appendChild(closeBtn);
+
+        modal.appendChild(header);
+
+        if (tables.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'export-empty';
+          empty.textContent = 'No memo tables found on this page.';
+          modal.appendChild(empty);
+        } else {
+          const selectAllRow = document.createElement('label');
+          selectAllRow.className = 'export-select-all';
+          const selectAllCheckbox = document.createElement('input');
+          selectAllCheckbox.type = 'checkbox';
+          selectAllRow.appendChild(selectAllCheckbox);
+          selectAllRow.appendChild(document.createTextNode('Select all'));
+          modal.appendChild(selectAllRow);
+
+          const list = document.createElement('div');
+          list.className = 'export-table-list';
+
+          const updateGenerateAvailability = () => {
+            generateBtn.disabled = !checkboxes.some((cb) => cb.checked);
+            actions.hidden = true;
+          };
+
+          const checkboxes = tables.map((table) => {
+            const item = document.createElement('label');
+            item.className = 'export-table-item';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.dataset.tableId = table.id;
+            checkbox.checked = table.id === currentTableId;
+            checkbox.addEventListener('change', () => {
+              selectAllCheckbox.checked = checkboxes.every((cb) => cb.checked);
+              updateGenerateAvailability();
+            });
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'export-table-name';
+            nameSpan.textContent = table.name;
+
+            item.appendChild(checkbox);
+            item.appendChild(nameSpan);
+            list.appendChild(item);
+            return checkbox;
+          });
+
+          selectAllCheckbox.checked = checkboxes.every((cb) => cb.checked);
+          selectAllCheckbox.addEventListener('change', () => {
+            checkboxes.forEach((cb) => {
+              cb.checked = selectAllCheckbox.checked;
+            });
+            updateGenerateAvailability();
+          });
+
+          modal.appendChild(list);
+
+          const preview = document.createElement('textarea');
+          preview.className = 'export-preview';
+          preview.readOnly = true;
+          preview.placeholder = 'Generated markdown will appear here.';
+          modal.appendChild(preview);
+
+          const footer = document.createElement('div');
+          footer.className = 'export-modal-footer';
+
+          const generateBtn = document.createElement('button');
+          generateBtn.type = 'button';
+          generateBtn.className = 'coach-mark-dismiss';
+          generateBtn.textContent = 'Generate';
+          generateBtn.addEventListener('click', () => {
+            const selectedIds = checkboxes
+              .filter((cb) => cb.checked)
+              .map((cb) => cb.dataset.tableId);
+            parent.postMessage({ pluginMessage: { type: 'generate-export-markdown', tableIds: selectedIds } }, '*');
+          });
+          footer.appendChild(generateBtn);
+
+          const actions = document.createElement('div');
+          actions.className = 'export-footer-actions';
+          actions.hidden = true;
+
+          const copyBtn = document.createElement('button');
+          copyBtn.type = 'button';
+          copyBtn.className = 'export-secondary-btn';
+          copyBtn.textContent = 'Copy to Clipboard';
+          copyBtn.addEventListener('click', () => {
+            if (!preview.value) {
+              return;
+            }
+
+            const notifySuccess = () => {
+              parent.postMessage({ pluginMessage: { type: 'show-toast', message: 'Copied to clipboard' } }, '*');
+            };
+            const notifyFailure = () => {
+              parent.postMessage({ pluginMessage: { type: 'show-toast', message: 'Failed to copy', error: true } }, '*');
+            };
+            const fallbackCopy = () => {
+              try {
+                preview.focus();
+                preview.select();
+                const ok = document.execCommand('copy');
+                preview.setSelectionRange(0, 0);
+                preview.blur();
+                return ok;
+              } catch (error) {
+                return false;
+              }
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(preview.value).then(notifySuccess).catch(() => {
+                if (fallbackCopy()) {
+                  notifySuccess();
+                } else {
+                  notifyFailure();
+                }
+              });
+            } else if (fallbackCopy()) {
+              notifySuccess();
+            } else {
+              notifyFailure();
+            }
+          });
+          actions.appendChild(copyBtn);
+
+          const downloadBtn = document.createElement('button');
+          downloadBtn.type = 'button';
+          downloadBtn.className = 'export-secondary-btn';
+          downloadBtn.textContent = 'Download .md';
+          downloadBtn.addEventListener('click', () => {
+            if (!preview.value) {
+              return;
+            }
+            const selectedNames = checkboxes
+              .filter((cb) => cb.checked)
+              .map((cb) => cb.closest('.export-table-item').querySelector('.export-table-name').textContent);
+            const baseName = selectedNames.length === 1 ? selectedNames[0] : 'ux-descriptions-export';
+            const safeName = baseName.replace(/[\\/:*?"<>|]/g, '-').trim() || 'export';
+            const blob = new Blob([preview.value], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${safeName}.md`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          });
+          actions.appendChild(downloadBtn);
+
+          footer.appendChild(actions);
+          modal.appendChild(footer);
+          updateGenerateAvailability();
+        }
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        activeExportOverlay = overlay;
+      }
+
+      exportButton.addEventListener('click', () => {
+        parent.postMessage({ pluginMessage: { type: 'request-export-tables' } }, '*');
       });
 
       renderPhraseList();
